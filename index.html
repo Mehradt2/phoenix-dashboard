@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تیم عملیات آزمایش</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap" />
+  <style>
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      direction: rtl;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #0077b6;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    header img {
+      height: 50px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .search-bar {
+      text-align: center;
+      padding: 15px;
+      background-color: #ffffff;
+    }
+    .search-bar input {
+      padding: 8px;
+      margin: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 180px;
+    }
+    #ticket-container {
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .ticket {
+      background: #ffffff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .ticket strong {
+      color: #1d3557;
+    }
+    .status {
+      color: green;
+      font-weight: bold;
+    }
+    footer {
+      text-align: center;
+      padding: 10px;
+      color: #888;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="doctor_saina_logo.png" alt="دکتر ساینا" />
+    <h1>تیم عملیات آزمایش 🧪</h1>
+  </header>
+
+  <div class="search-bar">
+    <input type="text" placeholder="جستجو بر اساس نام" id="search-name" />
+    <input type="text" placeholder="شماره موبایل" id="search-mobile" />
+    <input type="text" placeholder="کد ملی" id="search-nationalID" />
+    <input type="text" placeholder="روز نمونه‌گیری" id="search-day" />
+  </div>
+
+  <div id="ticket-container">
+    <p>در حال بارگذاری اطلاعات... ⏳</p>
+  </div>
+
+  <footer>
+    © تیم عملیات آزمایش | اطلاعات از Google Sheets
+  </footer>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyckLNd99xfGf54K6lQFGdprw_2ZWl5E0MDiCVZCNJhuzTpaNo8j_iB7TKJeghETYot/exec";
+    const container = document.getElementById('ticket-container');
+    const searchInputs = [
+      document.getElementById('search-name'),
+      document.getElementById('search-mobile'),
+      document.getElementById('search-nationalID'),
+      document.getElementById('search-day')
+    ];
+    let rawData = [];
+
+    async function fetchData() {
+      try {
+        const res = await fetch(GAS_URL);
+        if (!res.ok) throw new Error("خطا در دریافت داده");
+        const data = await res.json();
+        rawData = data.slice(1); // حذف سطر عنوان
+        renderTickets(rawData);
+      } catch (e) {
+        container.innerHTML = "<p>❌ خطا در دریافت اطلاعات از Google Sheets</p>";
+      }
+    }
+
+    function renderTickets(data) {
+      container.innerHTML = '';
+      if (data.length === 0) {
+        container.innerHTML = "<p>🔍 نتیجه‌ای یافت نشد</p>";
+        return;
+      }
+      data.forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'ticket';
+        div.innerHTML = `
+          <strong>${row[5] || ''} | ${row[2] || ''}</strong><br/>
+          📞 موبایل: ${row[6] || ''}<br/>
+          🆔 کدملی: ${row[7] || ''}<br/>
+          ✅ وضعیت جواب: <span class="status">${row[20] || '-'}</span><br/>
+          📅 روز نمونه‌گیری: ${row[0] || ''}/${row[1] || ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function filterData() {
+      const [name, mobile, nationalID, day] = searchInputs.map(i => i.value.trim());
+      const filtered = rawData.filter(row =>
+        (!name || row[5]?.includes(name)) &&
+        (!mobile || row[6]?.includes(mobile)) &&
+        (!nationalID || row[7]?.includes(nationalID)) &&
+        (!day || row[0]?.toString().includes(day))
+      );
+      renderTickets(filtered);
+    }
+
+    searchInputs.forEach(input => input.addEventListener("input", filterData));
+    fetchData();
+  </script>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>دکتر ساینا - تیم عملیات آزمایش</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn&display=swap">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Vazirmatn', sans-serif;
+      background: url('A_digital_illustration_features_a_logo_and_illustr.png') center/cover no-repeat;
+      background-color: #0e0e0e;
+      color: #f0f0f0;
+    }
+    header {
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      box-shadow: 0 2px 10px rgba(255,255,255,0.05);
+    }
+    .title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ffe600;
+    }
+    .icon-bar {
+      font-size: 1.7rem;
+    }
+    .container {
+      padding: 2rem;
+      backdrop-filter: blur(6px);
+    }
+    .search-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .search-bar input {
+      padding: 0.6rem;
+      border-radius: 8px;
+      border: none;
+      flex: 1 1 200px;
+      background: #1f1f1f;
+      color: #fff;
+    }
+    .ticket {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1rem;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .ticket:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .editable {
+      background: #333;
+      padding: 0.3rem 0.6rem;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .editable[contenteditable="true"] {
+      outline: 2px dashed #ffe600;
+    }
+    .reveal-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #ffe600;
+      color: #000;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .details {
+      display: none;
+      margin-top: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">دکتر ساینا | تیم عملیات آزمایش</div>
+    <div class="icon-bar">🧬🧪🕊️👩‍⚕️🪶</div>
+  </header>
+
+  <div class="container">
+    <div class="search-bar">
+      <input id="search-name" placeholder="نام">
+      <input id="search-mobile" placeholder="شماره موبایل">
+      <input id="search-code" placeholder="کد ملی">
+      <input id="search-day" placeholder="روز">
+      <input id="search-month" placeholder="ماه">
+    </div>
+
+    <div id="ticket-container">در حال بارگذاری...</div>
+  </div>
+
+  <script>
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwFQmzh5n4qhQqbYEVzjC6Rl1mffnx6p233nvzQq35RgVnWjMDD7qiOUoLt0ASD0EW8/exec';
+    let rawData = [];
+
+    async function fetchData() {
+      try {
+        const res = await fetch(GAS_URL);
+        const data = await res.json();
+        rawData = data.slice(1);
+        renderTickets(rawData);
+      } catch {
+        document.getElementById('ticket-container').innerHTML = '<p style="color:red">❌ خطا در دریافت اطلاعات</p>';
+      }
+    }
+
+    function renderTickets(data) {
+      const container = document.getElementById('ticket-container');
+      container.innerHTML = '';
+      data.forEach((row, index) => {
+        const div = document.createElement('div');
+        div.className = 'ticket';
+        div.innerHTML = `
+          <button class="reveal-btn" onclick="this.nextElementSibling.style.display='block';this.remove()">نمایش جزئیات</button>
+          <div><strong>${row[5] || ''} | ${row[2] || ''}</strong></div>
+          <div class="details">
+            <div>📞 ${row[6] || ''}</div>
+            <div>🆔 ${row[7] || ''}</div>
+            <div>📅 ${row[0] || ''}/${row[1] || ''}</div>
+            <div>✅ <span class="editable" data-row="${index + 2}" data-col="21">${row[20] || ''}</span></div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll('.editable').forEach(el => {
+        el.addEventListener('click', () => {
+          if (confirm('آیا می‌خواهید این مقدار را تغییر دهید؟')) {
+            el.setAttribute('contenteditable', true);
+            el.focus();
+          }
+        });
+        el.addEventListener('blur', () => {
+          el.setAttribute('contenteditable', false);
+          const newValue = el.textContent.trim();
+          updateCell(el.dataset.row, el.dataset.col, newValue);
+        });
+      });
+    }
+
+    async function updateCell(row, col, newValue) {
+      const body = JSON.stringify({ row, col, newValue, user: 'دکتر ساینا' });
+      try {
+        await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body
+        });
+      } catch {
+        alert('⛔ خطا در ثبت تغییرات');
+      }
+    }
+
+    function filterData() {
+      const name = document.getElementById('search-name').value.trim();
+      const mobile = document.getElementById('search-mobile').value.trim();
+      const code = document.getElementById('search-code').value.trim();
+      const day = document.getElementById('search-day').value.trim();
+      const month = document.getElementById('search-month').value.trim();
+
+      const filtered = rawData.filter(row =>
+        (!name || row[5]?.includes(name)) &&
+        (!mobile || row[6]?.includes(mobile)) &&
+        (!code || row[7]?.includes(code)) &&
+        (!day || row[0]?.toString().includes(day)) &&
+        (!month || row[1]?.toString().includes(month))
+      );
+      renderTickets(filtered);
+    }
+
+    document.querySelectorAll('.search-bar input').forEach(input => {
+      input.addEventListener('input', filterData);
+    });
+
+    fetchData();
+  </script>
+</body>
+</html>
