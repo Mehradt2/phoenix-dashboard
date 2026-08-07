@@ -1,0 +1,57 @@
+name: Publish HomeLabQC v1.4.0 Exact Tested Binary
+
+on:
+  push:
+    paths:
+      - '.github/workflows/homelabqc-publish-v1.4.0.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact private tested workflow artifact
+        run: |
+          curl -fL --retry 3 --connect-timeout 20 'https://sdmntprpolandcentral.oaiusercontent.com/files/00000000-b23c-820a-8170-5c11120e559d/raw?se=2026-08-07T23%3A37%3A11Z&sp=r&sv=2026-02-06&sr=b&scid=66a336dc-b506-500b-82b6-6a0c2f1c0d30&skoid=9b41a688-1b44-4731-856e-b0efcf3660ed&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-07T05%3A12%3A44Z&ske=2026-08-08T05%3A12%3A44Z&sks=b&skv=2026-02-06&sig=F6ezCFUUkhtUbaSQRCoTGVev14jr7wKq9ynYaOMwFGI%3D' -o homelab-v140.zip
+          mkdir -p dist
+          unzip -o homelab-v140.zip -d dist
+          ls -lah dist
+      - name: Verify exact private tested installer and manifest
+        run: |
+          echo '1005ee9de89bfe63a312de97927a6d3b9e629bc5a6b6985a7da3515734432379  dist/HomeLAB-ResusltsQC-Setup-v1.4.0.exe' | sha256sum -c -
+          test "$(stat -c%s dist/HomeLAB-ResusltsQC-Setup-v1.4.0.exe)" = '121542510'
+          echo '34cd1ef6175c980ee6bd0012f6a650bbe17ae1d1c307ab00b000e6e40bc9771e  dist/HomeLAB-ResusltsQC.exe' | sha256sum -c -
+          test -f dist/latest.json
+          test -f dist/SHA256SUMS.txt
+          python - <<'PY'
+          import hashlib,json
+          from pathlib import Path
+          installer=Path('dist/HomeLAB-ResusltsQC-Setup-v1.4.0.exe')
+          m=json.loads(Path('dist/latest.json').read_text(encoding='utf-8-sig'))
+          digest=hashlib.sha256(installer.read_bytes()).hexdigest()
+          assert m['version']=='1.4.0',m
+          assert m['installer_name']==installer.name,m
+          assert m['sha256'].lower()==digest,(m,digest)
+          assert int(m['size'])==installer.stat().st_size,m
+          assert m['installer_url']=='https://github.com/Mehradt2/phoenix-dashboard/releases/download/v1.4.0/HomeLAB-ResusltsQC-Setup-v1.4.0.exe',m
+          print('Exact v1.4.0 stable artifact verified:',digest,installer.stat().st_size)
+          PY
+      - name: Publish public binary-only v1.4.0 release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.4.0
+          name: HomeLAB Results QC v1.4.0
+          prerelease: false
+          make_latest: true
+          body: |
+            Binary-only public update/download channel for HomeLAB Results QC v1.4.0.
+            Source code remains private in LABQC.
+            This release uses the exact Windows artifact from Final Stable run 31227085224.
+            Gates passed: dependency audit, 96 regression tests, Clinical Intelligence tests, 100-case operational simulation, actual public update/medical-KB check, forced CERTIFICATE_VERIFY_FAILED recovery through Windows Trust without disabling TLS, OCR smoke, packaged EXE self-test, silent installed EXE self-test, real public v1.3.0 -> v1.4.0 production-helper upgrade, decision/filter UI checks, local-AI privacy checks, native CSV Save As, SHA256 and byte-size verification.
+          files: |
+            dist/HomeLAB-ResusltsQC-Setup-v1.4.0.exe
+            dist/SHA256SUMS.txt
+            dist/latest.json
