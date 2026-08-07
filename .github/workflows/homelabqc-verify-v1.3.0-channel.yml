@@ -1,0 +1,37 @@
+name: Verify HomeLabQC v1.3.0 Public Update Channel
+
+on:
+  push:
+    paths:
+      - '.github/workflows/homelabqc-verify-v1.3.0-channel.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch exact latest manifest URL used by installed application
+        run: |
+          curl -fL --retry 3 --connect-timeout 20 'https://github.com/Mehradt2/phoenix-dashboard/releases/latest/download/latest.json' -o latest.json
+      - name: Verify manifest fields and download advertised installer
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m = json.loads(Path('latest.json').read_text(encoding='utf-8-sig'))
+          assert m['version'] == '1.3.0', m
+          assert m['installer_name'] == 'HomeLAB-ResusltsQC-Setup-v1.3.0.exe', m
+          assert m['installer_url'] == 'https://github.com/Mehradt2/phoenix-dashboard/releases/download/v1.3.0/HomeLAB-ResusltsQC-Setup-v1.3.0.exe', m
+          assert m['sha256'].lower() == '3a943987c9d30d9ecc231d2f8fd77d855ae18af0fba35b53d1dfae82c57d9f0e', m
+          assert int(m['size']) == 121509803, m
+          Path('installer_url.txt').write_text(m['installer_url'], encoding='utf-8')
+          PY
+          URL="$(cat installer_url.txt)"
+          curl -fL --retry 3 --connect-timeout 20 "$URL" -o HomeLAB-ResusltsQC-Setup-v1.3.0.exe
+      - name: Verify public bytes exactly equal private tested artifact
+        run: |
+          echo '3a943987c9d30d9ecc231d2f8fd77d855ae18af0fba35b53d1dfae82c57d9f0e  HomeLAB-ResusltsQC-Setup-v1.3.0.exe' | sha256sum -c -
+          test "$(stat -c%s HomeLAB-ResusltsQC-Setup-v1.3.0.exe)" = '121509803'
+          echo 'Public latest manifest and advertised installer verified end to end.'
