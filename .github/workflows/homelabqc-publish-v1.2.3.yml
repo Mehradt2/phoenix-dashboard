@@ -1,0 +1,57 @@
+name: Publish HomeLabQC v1.2.3 Exact Tested Binary
+
+on:
+  push:
+    paths:
+      - '.github/workflows/homelabqc-publish-v1.2.3.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact private tested workflow artifact
+        run: |
+          curl -fL --retry 3 --connect-timeout 20 'https://sdmntprnortheu.oaiusercontent.com/files/00000000-c460-81f4-b365-1d2b4a77927b/raw?se=2026-08-07T21%3A06%3A00Z&sp=r&sv=2026-02-06&sr=b&scid=942c371f-2207-558c-8997-5b3eef25f3c0&skoid=82a3371f-2f6c-4f81-8a78-2701b362559b&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-07T05%3A02%3A05Z&ske=2026-08-08T05%3A02%3A05Z&sks=b&skv=2026-02-06&sig=XU6C2WvgF2wUeANyLK4dAfYTLXRLHVwEpAgxG5Cvmwo%3D' -o homelab-artifact.zip
+          mkdir -p dist
+          unzip -o homelab-artifact.zip -d dist
+          ls -lah dist
+      - name: Verify exact private tested build and manifest
+        run: |
+          echo '6f035b9c3a8980494de0a0f104b3698afcf05faea25d0112fdc04b7be82e6b10  dist/HomeLAB-ResusltsQC-Setup-v1.2.3.exe' | sha256sum -c -
+          test "$(stat -c%s dist/HomeLAB-ResusltsQC-Setup-v1.2.3.exe)" = '121464997'
+          test -f dist/SHA256SUMS.txt
+          test -f dist/latest.json
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          installer = Path('dist/HomeLAB-ResusltsQC-Setup-v1.2.3.exe')
+          manifest = json.loads(Path('dist/latest.json').read_text(encoding='utf-8-sig'))
+          digest = hashlib.sha256(installer.read_bytes()).hexdigest()
+          assert manifest['version'] == '1.2.3', manifest
+          assert manifest['installer_name'] == installer.name, manifest
+          assert manifest['sha256'].lower() == digest, (manifest, digest)
+          assert int(manifest['size']) == installer.stat().st_size, manifest
+          assert manifest['installer_url'] == 'https://github.com/Mehradt2/phoenix-dashboard/releases/download/v1.2.3/HomeLAB-ResusltsQC-Setup-v1.2.3.exe'
+          print('Exact artifact and update manifest verified:', digest, installer.stat().st_size)
+          PY
+      - name: Publish public binary-only update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.2.3
+          name: HomeLAB Results QC v1.2.3
+          prerelease: false
+          make_latest: true
+          body: |
+            Binary-only public update channel for HomeLAB Results QC.
+            Source code remains private in the LABQC repository.
+            This is the exact v1.2.3 Windows installer from private Stable workflow run 31217444031.
+            It passed regression, dependency/OCR checks, 50-item simulation, packaged self-test, silent installed-executable self-test, and a real public v1.2.2 -> v1.2.3 upgrade E2E in a Windows install path containing spaces.
+            SHA256 and byte size were reverified before this public release.
+          files: |
+            dist/HomeLAB-ResusltsQC-Setup-v1.2.3.exe
+            dist/SHA256SUMS.txt
+            dist/latest.json
