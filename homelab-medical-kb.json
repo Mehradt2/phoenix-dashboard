@@ -1,15 +1,15 @@
 {
   "schema": 1,
-  "revision": "2026-08-08.1",
+  "revision": "2026-08-08.2",
   "updated_at": "2026-08-08T00:00:00Z",
   "product": "HomeLAB Results QC",
-  "purpose": "Public, versioned medical knowledge metadata for local Clinical QC/Second-reader. Contains no patient data.",
+  "purpose": "Public versioned medical knowledge metadata for local Clinical QC/Second-reader. Contains no patient data.",
   "principles": [
-    "Reference interval printed on the same laboratory report is the primary reference for HomeLAB QC when reliably extracted.",
-    "Abnormal, significant-risk and critical are different concepts; an out-of-range value is not automatically non-sendable.",
-    "Sensitive infectious results require a validated verification/notification pathway and must not be inferred from similarly named markers.",
-    "Clinical context can change interpretation; medication, fasting status, pregnancy, acute illness and prior trends should be requested when relevant.",
-    "The assistant is a second-reader for QC and does not independently diagnose, prescribe or change treatment."
+    "Reference چاپ‌شده همان جواب آزمایش، در صورت استخراج قابل اتکا، مرجع اول QC است.",
+    "Abnormal، Significant-risk و Critical مفاهیم متفاوت هستند و خارج بودن از رنج به‌تنهایی مساوی منع ارسال نیست.",
+    "نتایج حساس عفونی باید با مسیر تأیید و اطلاع‌رسانی معتبر مدیریت شوند و مارکرهای مشابه نباید با یکدیگر اشتباه شوند.",
+    "دارو، ناشتا بودن، بارداری، بیماری حاد و روند نتایج قبلی می‌توانند Context تفسیر را تغییر دهند.",
+    "دستیار نقش Second-reader/QC دارد و تشخیص مستقل، تجویز یا تغییر درمان انجام نمی‌دهد."
   ],
   "sources": [
     {"key":"ada2026","title":"ADA Standards of Care in Diabetes—2026","year":2026,"url":"https://diabetesjournals.org/care/issue/49/Supplement_1"},
@@ -22,14 +22,14 @@
     {"key":"who-lqms","title":"WHO Laboratory Quality Management System","year":2011,"url":"https://www.who.int/publications/i/item/9789241548274"}
   ],
   "domain_notes": {
-    "glucose": ["When glucose and HbA1c appear discordant, verify timing, recent illness, therapy and factors that can affect HbA1c before drawing conclusions."],
-    "cardiovascular": ["Lipid results should be considered in overall cardiovascular-risk context; isolated lipid values do not establish cardiovascular disease."],
-    "kidney": ["Creatinine should be interpreted with eGFR, trend and clinical context when available; a single creatinine is not a complete kidney assessment."],
-    "liver": ["AST/ALT, alkaline phosphatase and bilirubin are more useful as a pattern than as isolated values; medications and clinical context matter."],
-    "anemia": ["CBC indices and ferritin/iron studies should be interpreted together; serum iron alone is not sufficient to establish iron deficiency."],
-    "thyroid": ["Pregnancy, acute illness, thyroid medication and biotin supplementation can materially affect thyroid-test interpretation."],
-    "coagulation": ["PT/INR interpretation depends on anticoagulant use and therapeutic target; an elevated INR is not automatically a laboratory reporting error."],
-    "nutrition": ["Supplements, dose and timing can influence selected laboratory measurements; laboratory values alone do not prove dietary behavior or supplement use."],
-    "infection": ["Anti-HBs and HBsAg must remain semantically separate; reactive anti-HCV does not by itself establish current HCV infection."]
+    "glucose": ["اگر Glucose و HbA1c با هم ناسازگار به‌نظر می‌رسند، زمان نمونه‌گیری، بیماری اخیر، درمان و عواملی که بر HbA1c اثر می‌گذارند قبل از نتیجه‌گیری بررسی شوند."],
+    "cardiovascular": ["نتایج چربی باید در Context ریسک کلی قلبی‌عروقی دیده شوند؛ یک عدد منفرد چربی به‌تنهایی بیماری قلبی‌عروقی را اثبات نمی‌کند."],
+    "kidney": ["Creatinine در صورت امکان همراه eGFR، روند قبلی و Context بالینی دیده شود؛ یک Creatinine منفرد ارزیابی کامل کلیه نیست."],
+    "liver": ["AST/ALT، ALP و Bilirubin به‌صورت الگو از یک عدد منفرد مفیدترند و داروها و Context بالینی در تفسیر اهمیت دارند."],
+    "anemia": ["شاخص‌های CBC و Ferritin/Iron studies باید کنار هم دیده شوند؛ Serum Iron به‌تنهایی برای اثبات کمبود آهن کافی نیست."],
+    "thyroid": ["بارداری، بیماری حاد، داروی تیروئید و مکمل Biotin می‌توانند تفسیر تست‌های تیروئید را تغییر دهند."],
+    "coagulation": ["تفسیر PT/INR به مصرف ضدانعقاد و Target درمانی وابسته است؛ INR بالا به‌تنهایی به معنی خطای گزارش آزمایشگاه نیست."],
+    "nutrition": ["مکمل، دوز و زمان مصرف می‌تواند روی برخی اندازه‌گیری‌های آزمایشگاهی اثر بگذارد؛ نتیجه آزمایش به‌تنهایی رژیم یا مصرف مکمل را اثبات نمی‌کند."],
+    "infection": ["Anti-HBs/HBsAb و HBsAg باید کاملاً جدا تفسیر شوند؛ Anti-HCV Reactive نیز به‌تنهایی عفونت فعال HCV را اثبات نمی‌کند."]
   }
 }
