@@ -1,0 +1,39 @@
+name: Publish HomeLabQC v1.2.2 Update Binary
+
+on:
+  push:
+    paths:
+      - '.github/workflows/homelabqc-publish-v1.2.2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact tested private build artifact
+        run: |
+          curl -fL --retry 3 --connect-timeout 20 'https://sdmntprukwest.oaiusercontent.com/files/00000000-24f0-8243-a43a-12c986956c7b/raw?se=2026-08-07T20%3A09%3A35Z&sp=r&sv=2026-02-06&sr=b&scid=0376bfc1-9395-507b-8774-0537cd43ae54&skoid=e32cbaad-a1eb-4299-9f16-1b364ab43781&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-07T18%3A57%3A56Z&ske=2026-08-08T18%3A57%3A56Z&sks=b&skv=2026-02-06&sig=9aoO19fDhVIZ3tWBej7jpGVo5WnjA1NW5r5cxc8eXKs%3D' -o homelab-artifact.zip
+          mkdir -p dist
+          unzip -o homelab-artifact.zip -d dist
+          ls -lah dist
+      - name: Verify exact tested installer checksum
+        run: |
+          echo '8fe8a20bd0406b32be56eeaafdfcef8456c4909b1e10c4447c62902a1edd22ae  dist/HomeLAB-ResusltsQC-Setup-v1.2.2.exe' | sha256sum -c -
+          test -f dist/SHA256SUMS.txt
+      - name: Publish public binary-only update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.2.2
+          name: HomeLAB Results QC v1.2.2
+          prerelease: false
+          make_latest: true
+          body: |
+            Binary-only public update channel for HomeLAB Results QC.
+            Source code remains private in the LABQC repository.
+            This is the exact v1.2.2 Windows installer that passed the private release workflow, packaged self-test, 50-item production simulation, OCR smoke test, and silent installed-executable self-test.
+          files: |
+            dist/HomeLAB-ResusltsQC-Setup-v1.2.2.exe
+            dist/SHA256SUMS.txt
