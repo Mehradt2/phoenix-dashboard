@@ -37,3 +37,5 @@ jobs:
           files: |
             dist/HomeLAB-ResusltsQC-Setup-v1.2.1.exe
             dist/SHA256SUMS.txt
+
+# publish-trigger: 2026-08-07T19:15Z
