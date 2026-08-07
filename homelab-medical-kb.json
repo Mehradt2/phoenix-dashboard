@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "revision": "2026-08-08.2",
+  "revision": "2026-08-08.1",
   "updated_at": "2026-08-08T00:00:00Z",
   "product": "HomeLAB Results QC",
   "purpose": "Public versioned medical knowledge metadata for local Clinical QC/Second-reader. Contains no patient data.",
