@@ -24,15 +24,15 @@ jobs:
       - name: Verify exact stable artifact
         shell: pwsh
         run: |
-          $installer='release/HomeLAB-ResusltsQC-Setup-v2.1.0.exe'
-          $portable='release/HomeLAB-ResusltsQC.exe'
+          $installer='release/dist/HomeLAB-ResusltsQC-Setup-v2.1.0.exe'
+          $portable='release/dist/HomeLAB-ResusltsQC.exe'
           if(!(Test-Path $installer)){throw 'installer missing'}
           if(!(Test-Path $portable)){throw 'portable exe missing'}
           if((Get-Item $installer).Length -ne 121590439){throw "installer size mismatch: $((Get-Item $installer).Length)"}
           if((Get-FileHash $installer -Algorithm SHA256).Hash.ToLower() -ne 'cf168cf94c2a7997af609fcceb5d9f351b0fcebc073726e336ca6169aaa6b347'){throw 'installer sha mismatch'}
           if((Get-Item $portable).Length -ne 121108036){throw 'portable size mismatch'}
           if((Get-FileHash $portable -Algorithm SHA256).Hash.ToLower() -ne '78221174302921c273d3ad5d1d5aac907bbb38df24f65bffa9068d47f79121fd'){throw 'portable sha mismatch'}
-          $manifest=Get-Content 'release/latest.json' -Raw | ConvertFrom-Json
+          $manifest=Get-Content 'release/dist/latest.json' -Raw | ConvertFrom-Json
           if($manifest.version -ne '2.1.0' -or $manifest.sha256 -ne 'cf168cf94c2a7997af609fcceb5d9f351b0fcebc073726e336ca6169aaa6b347' -or [int64]$manifest.size -ne 121590439){throw 'latest.json mismatch'}
       - name: Publish public binary-only stable release
         uses: softprops/action-gh-release@v2
@@ -48,8 +48,8 @@ jobs:
 
             This release contains the exact Windows artifacts that passed the private stable release workflow on source commit 7acc49e47a6409e6df4123e3d27677bb8daa9ec0.
           files: |
-            release/HomeLAB-ResusltsQC-Setup-v2.1.0.exe
-            release/HomeLAB-ResusltsQC.exe
-            release/SHA256SUMS.txt
-            release/latest.json
+            release/dist/HomeLAB-ResusltsQC-Setup-v2.1.0.exe
+            release/dist/HomeLAB-ResusltsQC.exe
+            release/dist/SHA256SUMS.txt
+            release/dist/latest.json
             release/THIRD_PARTY_MEDICAL_AI_NOTICE.txt
