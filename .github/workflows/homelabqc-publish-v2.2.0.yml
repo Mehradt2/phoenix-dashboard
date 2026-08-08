@@ -1,0 +1,53 @@
+name: Publish HomeLAB QC v2.2.0 exact tested binaries
+
+on:
+  push:
+    paths:
+      - '.github/workflows/homelabqc-publish-v2.2.0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact private stable artifact
+        env:
+          ARTIFACT_URL: 'https://sdmntpritalynorth.oaiusercontent.com/files/00000000-bbe4-8246-8625-c2a40622d769/raw?se=2026-08-08T05%3A43%3A45Z&sp=r&sv=2026-02-06&sr=b&scid=a17cf7ea-38e3-5c1a-80b8-ed4698e1d008&skoid=82a3371f-2f6c-4f81-8a78-2701b362559b&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-08T05%3A17%3A05Z&ske=2026-08-09T05%3A17%3A05Z&sks=b&skv=2026-02-06&sig=elV%2BuLq2yBAUITsPVQcy/9GmeFb12P3Z8KaLGg4KhBI%3D'
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --connect-timeout 20 "$ARTIFACT_URL" -o artifact.zip
+          unzip -q artifact.zip -d artifact
+          test -f artifact/dist/HomeLAB-ResusltsQC-Setup-v2.2.0.exe
+          test -f artifact/dist/HomeLAB-ResusltsQC.exe
+          test -f artifact/dist/latest.json
+          test -f artifact/dist/SHA256SUMS.txt
+          test -f artifact/THIRD_PARTY_MEDICAL_AI_NOTICE.txt
+      - name: Verify exact stable installer identity
+        run: |
+          set -euo pipefail
+          cd artifact/dist
+          echo '7f63be570cd23ed638ab772553c97ac661469d525ecd42b40346370e4fac5c19  HomeLAB-ResusltsQC-Setup-v2.2.0.exe' | sha256sum -c -
+          echo 'a7fc1f3e9f80745dc2ac4d1575455f630deb5dd66b234bdf66599800b78a6843  HomeLAB-ResusltsQC.exe' | sha256sum -c -
+          test "$(stat -c%s HomeLAB-ResusltsQC-Setup-v2.2.0.exe)" = '121675334'
+          grep -q '"version":"2.2.0"' latest.json
+          grep -q '"source_commit":"e38634e4febd0c687ea4b322a548266504ab7895"' latest.json
+          grep -q '"network_policy":"manual-one-operation-consent"' latest.json
+      - name: Publish public binary/update release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release delete v2.2.0 --yes --cleanup-tag 2>/dev/null || true
+          gh release create v2.2.0 \
+            artifact/dist/HomeLAB-ResusltsQC-Setup-v2.2.0.exe \
+            artifact/dist/HomeLAB-ResusltsQC.exe \
+            artifact/dist/SHA256SUMS.txt \
+            artifact/dist/latest.json \
+            artifact/THIRD_PARTY_MEDICAL_AI_NOTICE.txt \
+            --title 'HomeLAB Results QC v2.2.0' \
+            --notes 'Public binary/update channel for the exact HomeLAB Results QC v2.2.0 artifacts that passed the private Windows stable gate on source commit e38634e4febd0c687ea4b322a548266504ab7895. Installer SHA256: 7f63be570cd23ed638ab772553c97ac661469d525ecd42b40346370e4fac5c19. v2.2.0 adds all-page identity recovery, patient/physician separation, validated Reference/ESR/MCV handling, evidence-grounded assistant abstention, visible optional local MedGemma controls, manual one-operation internet consent, Persian display controls, and tamper-evident operator decision audit.' \
+            --latest
