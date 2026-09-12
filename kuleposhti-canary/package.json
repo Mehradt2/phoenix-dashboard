@@ -1,0 +1,9 @@
+{
+  "name": "kuleposhti-render-canary",
+  "version": "2.5.1",
+  "private": true,
+  "type": "module",
+  "scripts": {"start":"node server.mjs","test":"node selftest.mjs"},
+  "engines":{"node":">=22"},
+  "dependencies":{"express":"^5.1.0"}
+}
