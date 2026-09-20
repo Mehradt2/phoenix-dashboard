@@ -75,3 +75,11 @@ Application image باید با SHA Git Tag شود. در صورت خطای Relea
 - ارسال Audio خام به API.
 - نگهداری Secret در Git.
 - استفاده از `latest` به‌تنهایی برای Production pin.
+
+
+## Imageهای مرجع GHCR
+پس از PASS شدن CI، دو Image با Git SHA و tag پایدار منتشر می‌شوند:
+- `ghcr.io/mehradt2/kuleposhti-web:team-latest`
+- `ghcr.io/mehradt2/kuleposhti-api:team-latest`
+
+برای استقرار قابل بازیابی Production، **از SHA tag همان Release استفاده کنید** و نه صرفاً `team-latest`.
