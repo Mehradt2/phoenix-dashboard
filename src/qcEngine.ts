@@ -10,7 +10,7 @@ const norm=(s:string)=>s
   .replace(/\s+/g,' ').trim();
 
 type Rule={id:string;label:string;weight:number;critical:boolean;patterns:RegExp[];negative?:RegExp[]};
-const RULES:Rule[]=[
+export const CONVERSATION_RULES:Rule[]=[
  {id:'C01',label:'شروع حرفه‌ای و معرفی',weight:8,critical:false,patterns:[/(سلام|وقت بخیر|صبح بخیر|شب بخیر)/,/(نمونه.?گیر|از طرف|دکترساینا|روبرا|هومکا|دکتر دکتر)/]},
  {id:'C02',label:'تأیید مخاطب/هویت مناسب',weight:7,critical:false,patterns:[/(خودتون|شما هستید|با آقای|با خانم|بیمار|مراجع|برای شما)/]},
  {id:'C03',label:'تأیید روز و بازه مراجعه',weight:15,critical:true,patterns:[/(فردا|امروز|صبح|ساعت|بازه|بین\s*\d+\s*(تا|الی)\s*\d+)/]},
@@ -27,7 +27,7 @@ export function evaluateConversation(transcript:string):ConversationQC{
  const t=norm(transcript),warnings:string[]=[];
  if(t.length<20)return{version:'sampler-conversation-qc-1.0.0',conversationScore:null,coverage:0,risk:'critical',requiresHumanReview:true,criticalFailures:['TRANSCRIPT_INSUFFICIENT'],findings:[],warnings:['Transcript برای امتیازدهی کافی نیست.']};
  let weighted=0,covered=0,criticalFailures:string[]=[];
- const findings=RULES.map(r=>{
+ const findings=CONVERSATION_RULES.map(r=>{
    const hits=r.patterns.filter(p=>p.test(t));
    const neg=(r.negative||[]).some(p=>p.test(t));
    const matched=hits.length>0&&!neg;
@@ -41,6 +41,13 @@ export function evaluateConversation(transcript:string):ConversationQC{
  const risk=criticalFailures.length>=2?'critical':criticalFailures.length===1?'high':score<70?'medium':'low';
  return{version:'sampler-conversation-qc-1.0.0',conversationScore:score,coverage,risk,requiresHumanReview:true,criticalFailures,findings,warnings};
 }
+
+export const WORKFLOW_POLICY={
+ version:'sampler-workflow-policy-2026-09-override',
+ playbook:'QP-01-V1',
+ currentOperationalOverride:'در عدم پاسخ شب، سه تلاش با فاصله ۲۰ دقیقه ثبت شود؛ سپس Retry صبح قبل از لغو عدم پاسخ Evidence شود.',
+ sourceConflict:'QP-01-V1 متن فعلی پس از سه تماس بی‌پاسخ لغو را ذکر می‌کند؛ الزام Retry صبح از نیاز عملیاتی جاری آمده و تا اصلاح Playbook به‌عنوان Override نسخه‌دار نمایش داده می‌شود.'
+} as const;
 
 export type WorkflowEvidence={
  nightAttempts:0|1|2|3;
