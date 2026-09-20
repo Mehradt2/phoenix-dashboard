@@ -2,7 +2,7 @@ import{describe,it,expect}from'vitest';import{evaluateConversation,scoreWorkflow
 
 describe('sampler conversation QC',()=>{
  it('extracts evidence and scores a complete coordination call',()=>{
-  const q=evaluateConversation('سلام وقت بخیر، من نمونه گیر روبرا هستم. فردا صبح ساعت 8 خدمت شما می رسم. لطفا آدرس و پلاک و واحد را تایید می کنید؟ حدود ده دقیقه قبل از رسیدن تماس می گیرم. برای آزمایش ناشتا باشید، آب ساده مشکلی ندارد و در مورد دارو طبق دستور پزشک عمل کنید. سوال یا ابهامی دارید؟ پس هماهنگ شد، ممنون.');
+  const q=evaluateConversation('سلام وقت بخیر، من نمونه گیر روبرا هستم. با خود بیمار صحبت می‌کنم؟ فردا صبح ساعت 8 خدمت شما می رسم. لطفا آدرس و پلاک و واحد را تایید می کنید؟ حدود ده دقیقه قبل از رسیدن تماس می گیرم. برای آزمایش ناشتا باشید، آب ساده مشکلی ندارد و در مورد دارو طبق دستور پزشک عمل کنید. سوال یا ابهامی دارید؟ پس هماهنگ شد، ممنون.');
   expect(q.conversationScore).not.toBeNull();
   expect(q.coverage).toBeGreaterThanOrEqual(80);
   expect(q.criticalFailures).toEqual([]);
