@@ -1,0 +1,27 @@
+{
+  "product":"KulePoshti",
+  "purpose":"Persian conversation quality-control operations system",
+  "source_branch":"kuleposhti-operational-web-v1",
+  "public_runtime":"https://mehradt2.github.io/phoenix-dashboard/",
+  "runtimes":{
+    "browser_local":{"storage":"Encrypted IndexedDB","audio_cloud":false,"shared_db":false},
+    "team_docker":{"web":"React/Nginx","api":"Node 22/Express","database":"PostgreSQL 16","tls":"Caddy","audio_cloud":false,"shared_db":true},
+    "windows_target":{"shell":"Tauri/Rust","database":"SQLite WAL","asr":"whisper.cpp","status":"separate evidence track"}
+  },
+  "domains":["physician","sampler"],
+  "invariants":[
+    "Evidence before QC pass",
+    "Critical finding blocks normal auto-approval",
+    "AI copilot cannot mutate deterministic QC score",
+    "Audio raw is never sent to team API",
+    "Audit is append-only",
+    "Rule packs are versioned",
+    "No paid ASR or LLM API in critical path"
+  ],
+  "documentation_entry":"docs/00_INDEX_FA.md",
+  "docker_entry":"docker-compose.yml",
+  "database_migrations":"server/migrations",
+  "api_source":"server/src",
+  "ops_scripts":"ops",
+  "ci":[".github/workflows/kuleposhti-pages.yml",".github/workflows/kuleposhti-docker.yml"]
+}
