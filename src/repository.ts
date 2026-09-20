@@ -5,7 +5,7 @@ async function api(path:string,init:RequestInit={}){
  const r=await fetch(apiUrl(path),{...init,headers,credentials:'include'});if(r.status===204)return null;
  const body=await r.json().catch(()=>({}));if(!r.ok)throw new Error(body?.error||`api_${r.status}`);return body
 }
-export async function session():Promise<TeamUser|null>{if(!isTeamMode())return null;try{return(await api('/api/auth/me')).user}catch{return null}}
+export async function session():Promise<TeamUser|null>{if(!isTeamMode())return null;return(await api('/api/auth/session')).user}
 export async function login(email:string,password:string):Promise<TeamUser>{return(await api('/api/auth/login',{method:'POST',body:JSON.stringify({email,password})})).user}
 export async function logout(){if(isTeamMode())await api('/api/auth/logout',{method:'POST'});else vault.lockVault()}
 export const localVault={hasVault:vault.hasVault,initVault:vault.initVault,unlockVault:vault.unlockVault,lockVault:vault.lockVault};
