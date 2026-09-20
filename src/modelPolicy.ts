@@ -1,10 +1,20 @@
 export type ModelMode='auto'|'standard'|'quality';
 export type HardwareProfile={webgpu:boolean;deviceMemoryGb:number|null;hardwareConcurrency:number;storageQuotaMb:number|null;storageUsageMb:number|null;browser:string};
-export type ModelPlan={mode:ModelMode;id:string;label:string;device:'webgpu'|'wasm';dtype:any;reason:string;fallbackId:string|null;authRequired:false;subscriptionRequired:false;license:'MIT'};
-export const CATALOG={standard:{id:'onnx-community/whisper-small',label:'Whisper Small · استاندارد'},quality:{id:'onnx-community/whisper-large-v3-turbo',label:'Whisper Large v3 Turbo · کیفیت بالا'}} as const;
+export type ModelPlan={mode:ModelMode;id:string;label:string;device:'webgpu'|'wasm';dtype:any;reason:string;fallbackId:string|null;authRequired:false;subscriptionRequired:false;runtime:'browser-local';validation:'standard'|'candidate';licenseNotice:string};
+export const CATALOG={
+  standard:{id:'onnx-community/whisper-small',label:'Whisper Small · استاندارد',validation:'standard' as const},
+  quality:{id:'onnx-community/whisper-large-v3-turbo',label:'Whisper Large v3 Turbo · کاندید کیفیت',validation:'candidate' as const}
+} as const;
 function browserName(){const u=navigator.userAgent;if(/Edg\//.test(u))return'Edge';if(/Chrome\//.test(u))return'Chrome';if(/Firefox\//.test(u))return'Firefox';if(/Safari\//.test(u))return'Safari';return'Browser'}
 export async function probeHardware():Promise<HardwareProfile>{const n=navigator as Navigator&{deviceMemory?:number;gpu?:unknown};let q:null|number=null,u:null|number=null;try{const e=await navigator.storage?.estimate?.();q=e?.quota?Math.round(e.quota/1048576):null;u=e?.usage?Math.round(e.usage/1048576):null}catch{}return{webgpu:Boolean(n.gpu),deviceMemoryGb:typeof n.deviceMemory==='number'?n.deviceMemory:null,hardwareConcurrency:navigator.hardwareConcurrency||1,storageQuotaMb:q,storageUsageMb:u,browser:browserName()}}
-function strong(h:HardwareProfile){const mem=h.deviceMemoryGb==null?h.hardwareConcurrency>=12:h.deviceMemoryGb>=8;return h.webgpu&&mem&&h.hardwareConcurrency>=8}
-export function choosePlan(mode:ModelMode,h:HardwareProfile):ModelPlan{if((mode==='quality'||mode==='auto')&&strong(h))return{mode,id:CATALOG.quality.id,label:CATALOG.quality.label,device:'webgpu',dtype:'fp16',reason:mode==='quality'?'کیفیت بالا: سخت‌افزار مناسب است.':'Auto: WebGPU و منابع کافی؛ Turbo انتخاب شد.',fallbackId:CATALOG.standard.id,authRequired:false,subscriptionRequired:false,license:'MIT'};return{mode,id:CATALOG.standard.id,label:CATALOG.standard.label,device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',reason:mode==='quality'?'Hardware Guard مدل بزرگ را رد کرد؛ Small انتخاب شد.':mode==='standard'?'Standard انتخاب شد.':'Auto: Small برای پایداری انتخاب شد.',fallbackId:null,authRequired:false,subscriptionRequired:false,license:'MIT'}}
-export function getMode():ModelMode{const x=localStorage.getItem('kp-model-mode');return x==='quality'||x==='standard'||x==='auto'?x:'auto'}export function setMode(x:ModelMode){localStorage.setItem('kp-model-mode',x)}
+function freeStorageMb(h:HardwareProfile){return h.storageQuotaMb==null?null:Math.max(0,h.storageQuotaMb-(h.storageUsageMb||0))}
+function turboSafe(h:HardwareProfile){const mem=h.deviceMemoryGb==null?h.hardwareConcurrency>=12:h.deviceMemoryGb>=8;const free=freeStorageMb(h);return h.webgpu&&mem&&h.hardwareConcurrency>=8&&(free==null||free>=6000)}
+const common={authRequired:false as const,subscriptionRequired:false as const,runtime:'browser-local' as const,licenseNotice:'Public model weights; no API token or paid inference subscription is required. Verify model/license metadata during release pin.'};
+export function choosePlan(mode:ModelMode,h:HardwareProfile):ModelPlan{
+  if(mode==='quality'&&turboSafe(h))return{mode,id:CATALOG.quality.id,label:CATALOG.quality.label,device:'webgpu',dtype:'fp16',reason:'High Quality فقط به درخواست کاربر و پس از Hardware Guard فعال شد؛ نتیجه هنوز Candidate است تا Gold فارسی PASS شود.',fallbackId:CATALOG.standard.id,validation:'candidate',...common};
+  const reason=mode==='quality'?'Hardware Guard مدل Turbo را رد کرد؛ برای پایداری Small انتخاب شد.':mode==='auto'?'Auto عمداً Small را انتخاب می‌کند تا Batchهای ۵–۶ دقیقه‌ای و تا ۱۰۰ فایل پایدار بمانند؛ Turbo فقط Manual High Quality است.':'Standard انتخاب شد.';
+  return{mode,id:CATALOG.standard.id,label:CATALOG.standard.label,device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',reason,fallbackId:null,validation:'standard',...common}
+}
+export function getMode():ModelMode{const x=localStorage.getItem('kp-model-mode');return x==='quality'||x==='standard'||x==='auto'?x:'auto'}
+export function setMode(x:ModelMode){localStorage.setItem('kp-model-mode',x)}
 export async function requestPersistentStorage(){try{return await navigator.storage?.persist?.()??false}catch{return false}}
