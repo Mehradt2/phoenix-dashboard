@@ -1,7 +1,7 @@
 export type Evidence={ruleId:string,label:string,matched:boolean,confidence:number,excerpts:string[],critical:boolean,source:'transcript'|'human',status?:'pass'|'partial'|'fail'};
 export type ConversationQC={version:string,conversationScore:number|null,coverage:number,risk:'low'|'medium'|'high'|'critical',requiresHumanReview:boolean,criticalFailures:string[],findings:Evidence[],warnings:string[]};
 
-const norm=(s:string)=>s.replace(/[يى]/g,'ی').replace(/[ك]/g,'ک').replace(/[ۀة]/g,'ه').replace(/[ؤ]/g,'و').replace(/[إأآ]/g,'ا').replace(/[۰-۹]/g,d=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/\s+/g,' ').trim();
+const norm=(s:string)=>s.replace(/[يى]/g,'ی').replace(/[ك]/g,'ک').replace(/[ۀة]/g,'ه').replace(/[ؤ]/g,'و').replace(/[إأ]/g,'ا').replace(/[۰-۹]/g,d=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/\s+/g,' ').trim();
 
 type Rule={id:string;label:string;weight:number;critical:boolean;primary:RegExp[];support?:RegExp[];negative?:RegExp[]};
 export const CONVERSATION_RULES:Rule[]=[
