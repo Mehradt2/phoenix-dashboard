@@ -15,6 +15,6 @@ export function choosePlan(mode:ModelMode,h:HardwareProfile):ModelPlan{
   const reason=mode==='quality'?'Hardware Guard مدل Turbo را رد کرد؛ برای پایداری Small انتخاب شد.':mode==='auto'?'Auto عمداً Small را انتخاب می‌کند تا Batchهای ۵–۶ دقیقه‌ای و تا ۱۰۰ فایل پایدار بمانند؛ Turbo فقط Manual High Quality است.':'Standard انتخاب شد.';
   return{mode,id:CATALOG.standard.id,label:CATALOG.standard.label,device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',reason,fallbackId:null,validation:'standard',...common}
 }
-export function getMode():ModelMode{const x=localStorage.getItem('kp-model-mode');return x==='quality'||x==='standard'||x==='auto'?x:'auto'}
-export function setMode(x:ModelMode){localStorage.setItem('kp-model-mode',x)}
+export function getMode():ModelMode{try{const x=globalThis.localStorage?.getItem('kp-model-mode');return x==='quality'||x==='standard'||x==='auto'?x:'auto'}catch{return'auto'}}
+export function setMode(x:ModelMode){try{globalThis.localStorage?.setItem('kp-model-mode',x)}catch{}}
 export async function requestPersistentStorage(){try{return await navigator.storage?.persist?.()??false}catch{return false}}
