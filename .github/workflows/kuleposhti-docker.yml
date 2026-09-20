@@ -65,6 +65,13 @@ jobs:
       KP_RELEASE: ci-${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser smoke dependencies
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
       - name: Build and start team stack
         run: |
           docker compose -f docker-compose.yml -f docker-compose.local.yml build api web migrate
@@ -88,6 +95,12 @@ jobs:
           curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/audit | grep -q '"audit"'
       - name: Runtime config is Team Mode
         run: curl -fsS http://localhost:8088/runtime-config.js | grep -q 'mode:"team"'
+      - name: Team browser E2E
+        env:
+          KP_TEAM_URL: http://localhost:8088
+          KP_TEAM_EMAIL: qc-admin@example.org
+          KP_TEAM_PASSWORD: CI-Strong-Passphrase-2026!
+        run: node scripts/team-browser-smoke.mjs
       - name: Logs on failure
         if: failure()
         run: docker compose -f docker-compose.yml -f docker-compose.local.yml logs --tail=250
