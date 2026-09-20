@@ -1,0 +1,16 @@
+import{chromium}from'playwright';
+const url=process.env.KP_SMOKE_URL||'http://127.0.0.1:4173/phoenix-dashboard/';
+const browser=await chromium.launch({headless:true});
+const page=await browser.newPage();
+const errors=[];
+page.on('pageerror',e=>errors.push('pageerror:'+e.message));
+page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+if(!response||!response.ok())throw new Error('navigation_failed status='+(response?.status()??'none'));
+await page.waitForTimeout(1500);
+const body=(await page.locator('body').innerText()).trim();
+if(!body.includes('کوله‌پشتی عملیاتی'))throw new Error('operational_shell_missing body='+body.slice(0,300));
+if(body.length<20)throw new Error('blank_or_too_short_page');
+if(errors.length)throw new Error('runtime_errors '+errors.join(' | '));
+console.log(JSON.stringify({ok:true,url,status:response.status(),bodySample:body.slice(0,160)}));
+await browser.close();
