@@ -1,0 +1,3 @@
+import test from'node:test';import assert from'node:assert/strict';import{randomBytes}from'node:crypto';process.env.DATA_ENCRYPTION_KEY=randomBytes(32).toString('base64');const{encryptJson,decryptJson,passwordRecord,verifyPassword}=await import('../src/crypto.mjs');
+test('AES-GCM round trip',()=>{const x={fa:'سلام',n:42},e=encryptJson(x);assert.deepEqual(decryptJson(e.iv,e.cipher),x)});
+test('password scrypt verify',()=>{const r=passwordRecord('Strong-Passphrase-2026!');assert.equal(verifyPassword('Strong-Passphrase-2026!',r.salt,r.hash),true);assert.equal(verifyPassword('wrong-password-value',r.salt,r.hash),false)});
