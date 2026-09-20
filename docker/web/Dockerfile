@@ -9,7 +9,7 @@ COPY scripts ./scripts
 RUN npm run check && npm test && npm run build
 
 FROM nginx:1.27-alpine
-ENV API_UPSTREAM=api:8080 KP_RUNTIME_MODE=team KP_RELEASE=docker
+ENV API_UPSTREAM=api:8080 KP_RUNTIME_MODE=team KP_RELEASE=docker NGINX_ENVSUBST_FILTER=API_UPSTREAM
 COPY docker/web/default.conf.template /etc/nginx/templates/default.conf.template
 COPY docker/web/40-runtime-config.sh /docker-entrypoint.d/40-runtime-config.sh
 RUN chmod +x /docker-entrypoint.d/40-runtime-config.sh
