@@ -1,15 +1,34 @@
 {
-  "product":"KulePoshti",
-  "purpose":"Persian conversation quality-control operations system",
-  "source_branch":"kuleposhti-operational-web-v1",
-  "public_runtime":"https://mehradt2.github.io/phoenix-dashboard/",
-  "runtimes":{
-    "browser_local":{"storage":"Encrypted IndexedDB","audio_cloud":false,"shared_db":false},
-    "team_docker":{"web":"React/Nginx","api":"Node 22/Express","database":"PostgreSQL 16","tls":"Caddy","audio_cloud":false,"shared_db":true},
-    "windows_target":{"shell":"Tauri/Rust","database":"SQLite WAL","asr":"whisper.cpp","status":"separate evidence track"}
+  "product": "KulePoshti",
+  "purpose": "Persian conversation quality-control operations system",
+  "source_branch": "kuleposhti-operational-web-v1",
+  "public_runtime": "https://mehradt2.github.io/phoenix-dashboard/",
+  "runtimes": {
+    "browser_local": {
+      "storage": "Encrypted IndexedDB",
+      "audio_cloud": false,
+      "shared_db": false
+    },
+    "team_docker": {
+      "web": "React/Nginx",
+      "api": "Node 22/Express",
+      "database": "PostgreSQL 16",
+      "tls": "Caddy",
+      "audio_cloud": false,
+      "shared_db": true
+    },
+    "windows_target": {
+      "shell": "Tauri/Rust",
+      "database": "SQLite WAL",
+      "asr": "whisper.cpp",
+      "status": "separate evidence track"
+    }
   },
-  "domains":["physician","sampler"],
-  "invariants":[
+  "domains": [
+    "physician",
+    "sampler"
+  ],
+  "invariants": [
     "Evidence before QC pass",
     "Critical finding blocks normal auto-approval",
     "AI copilot cannot mutate deterministic QC score",
@@ -18,10 +37,47 @@
     "Rule packs are versioned",
     "No paid ASR or LLM API in critical path"
   ],
-  "documentation_entry":"docs/00_INDEX_FA.md",
-  "docker_entry":"docker-compose.yml",
-  "database_migrations":"server/migrations",
-  "api_source":"server/src",
-  "ops_scripts":"ops",
-  "ci":[".github/workflows/kuleposhti-pages.yml",".github/workflows/kuleposhti-docker.yml"]
+  "documentation_entry": "docs/00_INDEX_FA.md",
+  "docker_entry": "docker-compose.yml",
+  "database_migrations": "server/migrations",
+  "api_source": "server/src",
+  "ops_scripts": "ops",
+  "ci": [
+    ".github/workflows/kuleposhti-pages.yml",
+    ".github/workflows/kuleposhti-docker.yml"
+  ],
+  "release_family": "qc-online-v1.1",
+  "rule_packs": {
+    "sampler": "sampler-conversation-qc-1.1.0",
+    "physician": "physician-qc-1.1.0",
+    "physician_operational": "physician-ops-2026-09-21",
+    "sampler_operational": "sampler-ops-2026-09-21"
+  },
+  "processing": {
+    "browser_asr_policy": "browser-asr-policy-1.1.0",
+    "model_timeout_ms": 240000,
+    "safe_fallback": "onnx-community/whisper-base",
+    "manual_transcript_fallback": true,
+    "retry": true,
+    "false_success_blocked": true
+  },
+  "profiles": {
+    "individual_drilldown": true,
+    "failure_pareto": true,
+    "call_history": true,
+    "physician_short_call_signals": true,
+    "external_operational_data": "explicitly gated until real DB/CRM connection"
+  },
+  "recovery": {
+    "ci_source_bundle": true,
+    "includes": [
+      "source",
+      "docs",
+      "docker",
+      "server",
+      "ops",
+      "migrations"
+    ],
+    "artifact_retention_days": 90
+  }
 }
