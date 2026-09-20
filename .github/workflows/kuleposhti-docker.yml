@@ -130,5 +130,5 @@ jobs:
           file: ${{ matrix.target.file }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/kuleposhti-${{ matrix.target.name }}:team-latest
-            ghcr.io/${{ github.repository_owner }}/kuleposhti-${{ matrix.target.name }}:${{ github.sha }}
+            ghcr.io/mehradt2/kuleposhti-${{ matrix.target.name }}:team-latest
+            ghcr.io/mehradt2/kuleposhti-${{ matrix.target.name }}:${{ github.sha }}
