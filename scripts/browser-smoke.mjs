@@ -27,7 +27,7 @@ async function operationalUnlock(){
   const create=page.getByRole('button',{name:'ساخت Vault'});
   if(await create.count())await create.click();else await page.getByRole('button',{name:'باز کردن Vault'}).click();
   await page.getByText('Upload Center نمونه‌گیر').waitFor({state:'visible',timeout:15000});
-  await page.getByText('صف بررسی').waitFor({state:'visible',timeout:5000});
+  await page.getByText('صف بررسی').waitFor({state:'visible',timeout:5000});await page.getByText('قواعد QC').click();await page.getByText('Rule Pack مکالمه نمونه‌گیر').waitFor({state:'visible',timeout:5000});await page.getByText('Policy Conflict ثبت‌شده').waitFor({state:'visible',timeout:5000});
   const body=(await page.locator('body').innerText()).trim();
   if(body.includes('Runtime Recovery'))throw new Error('unlock:runtime_recovery_visible');
   if(errors.length)throw new Error('unlock:runtime_errors '+errors.join(' | '));
