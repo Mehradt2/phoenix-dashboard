@@ -1,57 +1,112 @@
-# KulePoshti Operational Web
+# KulePoshti — Persian QC Operations OS
 
-نسخه بدون نصب و Browser-local کوله‌پشتی برای QC مکالمات فارسی.
+کوله‌پشتی یک سیستم Local-first / Team-ready برای کنترل کیفیت مکالمات فارسی پزشکان و نمونه‌گیران است.
 
-## Current public runtime
+## Quick access
+### Operational Browser Runtime
 https://mehradt2.github.io/phoenix-dashboard/
 
-## Runtime architecture
-Browser → Audio decode/resample → Silence Guard → Whisper (WebGPU/WASM) → deterministic QC → encrypted IndexedDB Vault → Human Review → Profile / Report / CSV.
+- بدون نصب
+- Whisper و AI داخل مرورگر
+- Audio خام از دستگاه خارج نمی‌شود
+- Vault رمزگذاری‌شده Browser-local
+- مناسب شروع فوری اپراتورهای QC
+- داده این Runtime بین Browserها مشترک نیست
 
-- Raw audio cloud transport: **false**
-- Paid ASR API: **false**
-- API token required for Whisper inference: **false**
-- Shared backend/database: **none in this runtime**
-- Batch intake: **up to 100 files**, processed sequentially to protect browser memory.
-- Supported operational focus in this baseline: **Sampler QC**.
+### Shared Team Runtime
+Docker stack:
+`React/Nginx → Node API → PostgreSQL 16` با Caddy TLS.
 
-## Whisper policy
-### Standard / Auto
-`onnx-community/whisper-small`
+- Login + RBAC
+- Team shared cases/reviews/reports
+- AES-256-GCM transcript encryption
+- append-only audit
+- versioned rule packs
+- provider-independent
+- raw audio never sent to API
 
-Auto intentionally selects Small for operational stability.
+Start here: [docs/00_INDEX_FA.md](docs/00_INDEX_FA.md)
 
-### High Quality candidate
-`onnx-community/whisper-large-v3-turbo`
+## Domains
+- Physician QC
+- Sampler QC
 
-Turbo is manual-only and requires WebGPU + hardware/storage guards. It remains a **candidate**, not a production winner, until Persian Gold benchmarking passes.
+هسته مشترک:
+`Local ASR → Transcript → Evidence → Versioned Rules → Human Review → Audit → Profiles/Reports`
 
-### Safety gate
-Gold benchmark tracks WER, critical-term recall, number recall, negation recall, silence hallucination and RTF.
-- Smoke evidence: >=20 adjudicated unique cases.
-- Production evidence: >=50 adjudicated unique cases.
-- Medical safety metrics take priority over speed.
+## Zero-cost AI policy
+- Whisper Small: operational baseline
+- Whisper Large-v3-Turbo: quality candidate until Persian Gold approval
+- Qwen2.5-0.5B-Instruct: local advisory Copilot
+- no OpenAI API / paid inference / HF inference token in critical path
+- AI Copilot cannot mutate deterministic QC score
 
-## Privacy
-Each browser creates a local encrypted Vault:
-- PBKDF2-SHA256 key derivation
-- AES-GCM case encryption
-- Passphrase never leaves browser
-- Raw audio is not persisted by the app
-- Encrypted backup/restore is available
+## Docker Team Mode
+```bash
+cp .env.example .env
+sh ops/generate-secrets.sh
+# place generated values in .env
+docker compose build
+docker compose up -d db
+docker compose run --rm migrate
+docker compose up -d
+sh ops/smoke.sh
+```
 
-This is not a shared-team database. Central online synchronization remains a separate future runtime.
+Detailed runbook: [docs/DOCKER_TEAM_RUNBOOK_FA.md](docs/DOCKER_TEAM_RUNBOOK_FA.md)
 
-## Release
-Source branch: `kuleposhti-operational-web-v1`
-Publishing branch: `main`
+## Documentation / Knowledge Base
+Documentation is a Release Gate. Required recovery knowledge:
+- Architecture
+- Docker/Domain
+- Database/API
+- Security/Privacy
+- Backup/Restore
+- Observability/SRE
+- Agile/Release governance
+- AI/Whisper policy
+- Reporting benchmark
+- ADRs
 
-Every source push runs:
-`npm install → npm run check → npm run build → publish immutable dist → GitHub Pages`.
+Index: [docs/00_INDEX_FA.md](docs/00_INDEX_FA.md)
 
-The release workflow writes `RELEASE.txt` with source SHA and privacy/runtime flags.
+## CI/CD
+### Operational Web
+`.github/workflows/kuleposhti-pages.yml`
+- contract check
+- unit tests
+- TypeScript/Vite build
+- browser E2E
+- mobile smoke
+- immutable public release
+- public URL smoke
 
-## Product / Engineering metadata
-Contribution signature: `mehradtorabi1`
+### Team Docker
+`.github/workflows/kuleposhti-docker.yml`
+- frontend tests/build
+- API tests
+- compose validation
+- PostgreSQL migration
+- Team stack integration
+- login/RBAC smoke
+- Team runtime config smoke
+- GHCR web/api image publish
 
-This metadata must never affect patient data, QC logic, scoring, model output or clinical interpretation.
+## Privacy invariants
+1. Audio cloud transport = false.
+2. Paid ASR dependency = false.
+3. Evidence is required for QC pass.
+4. Critical findings block normal approval.
+5. Human override requires evidence/note/audit.
+6. AI does not silently change QC score.
+7. Audit is append-only.
+8. Database schema changes require migrations.
+9. Release without updated docs/recovery knowledge is not Done.
+
+## Source of truth
+- source branch: `kuleposhti-operational-web-v1`
+- static release branch: `main`
+- DB migrations: `server/migrations`
+- Docker: `docker-compose.yml`
+- API: `server/src`
+- KB manifest: `knowledge/PROJECT_KNOWLEDGE.json`
