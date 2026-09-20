@@ -1,1 +1,18 @@
-import fs from'node:fs';const a=fs.readFileSync('src/asr.ts','utf8'),v=fs.readFileSync('src/vault.ts','utf8'),m=fs.readFileSync('src/modelPolicy.ts','utf8');const q=fs.readFileSync('src/qcEngine.ts','utf8');const c={noPaid:!/(OPENAI_API_KEY|HF_TOKEN|api\.openai\.com|Authorization: Bearer)/.test(a+m),audioLocal:/decode16k/.test(a),encryptedVault:/AES-GCM/.test(v)&&/PBKDF2/.test(v),models:/whisper-small/.test(m)&&/whisper-large-v3-turbo/.test(m),noToken:/authRequired:false/.test(m)&&/subscriptionRequired:false/.test(m),autoStable:/Auto عمداً Small/.test(m),batch:/slice\(0,100\)/.test(fs.readFileSync('src/main.tsx','utf8')),qcEngine:/sampler-conversation-qc-1\.0\.0/.test(q)&&/criticalFailures/.test(q)&&/scoreWorkflow/.test(q)};console.log(c);if(!Object.values(c).every(Boolean))process.exit(1);
+import fs from'node:fs';
+const a=fs.readFileSync('src/asr.ts','utf8'),v=fs.readFileSync('src/vault.ts','utf8'),m=fs.readFileSync('src/modelPolicy.ts','utf8'),q=fs.readFileSync('src/qcEngine.ts','utf8'),p=fs.readFileSync('src/physicianQcEngine.ts','utf8'),l=fs.readFileSync('src/localAi.ts','utf8'),ui=fs.readFileSync('src/main.tsx','utf8');
+const all=a+m+l;
+const c={
+ noPaid:!/(OPENAI_API_KEY|HF_TOKEN|api\.openai\.com|Authorization:\s*Bearer)/.test(all),
+ audioLocal:/decode16k/.test(a),
+ encryptedVault:/AES-GCM/.test(v)&&/PBKDF2/.test(v),
+ appendOnlyAudit:/AUDIT='audit'/.test(v)&&/review_submitted/.test(v),
+ models:/whisper-small/.test(m)&&/whisper-large-v3-turbo/.test(m),
+ noToken:/authRequired:false/.test(m)&&/subscriptionRequired:false/.test(m),
+ autoStable:/Auto عمداً Small/.test(m),
+ batch:/slice\(0,100\)/.test(ui),
+ samplerQC:/sampler-conversation-qc-1\.0\.0/.test(q)&&/criticalFailures/.test(q)&&/scoreWorkflow/.test(q),
+ physicianQC:/physician-qc-1\.0-candidate/.test(p)&&/VitaminDSignal/.test(p)&&/isolatedFromQcScore/.test(p),
+ localCopilot:/Qwen2\.5-0\.5B-Instruct/.test(l)&&/حق تغییر امتیاز QC را ندارد/.test(l),
+ multiDomain:/پزشکان/.test(ui)&&/نمونه‌گیران/.test(ui)&&/گزارش مدیریتی/.test(ui)
+};
+console.log(c);if(!Object.values(c).every(Boolean))process.exit(1);
