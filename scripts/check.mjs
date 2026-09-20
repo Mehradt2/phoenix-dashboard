@@ -1,6 +1,8 @@
 import fs from'node:fs';
 const a=fs.readFileSync('src/asr.ts','utf8'),v=fs.readFileSync('src/vault.ts','utf8'),m=fs.readFileSync('src/modelPolicy.ts','utf8'),q=fs.readFileSync('src/qcEngine.ts','utf8'),p=fs.readFileSync('src/physicianQcEngine.ts','utf8'),l=fs.readFileSync('src/localAi.ts','utf8'),ui=fs.readFileSync('src/main.tsx','utf8');
 const all=a+m+l;
+const requiredDocs=['docs/00_INDEX_FA.md','docs/PRODUCT_ARCHITECTURE_FA.md','docs/DOCKER_TEAM_RUNBOOK_FA.md','docs/DATABASE_SCHEMA_FA.md','docs/API_CONTRACT_FA.md','docs/SECURITY_PRIVACY_FA.md','docs/RECOVERY_DR_FA.md','docs/OBSERVABILITY_SRE_FA.md','docs/KNOWLEDGE_BASE_OPERATIONS_FA.md','knowledge/PROJECT_KNOWLEDGE.json','docker-compose.yml','.env.example'];
+const docsPresent=requiredDocs.every(x=>fs.existsSync(x));
 const c={
  noPaid:!/(OPENAI_API_KEY|HF_TOKEN|api\.openai\.com|Authorization:\s*Bearer)/.test(all),
  audioLocal:/decode16k/.test(a),
@@ -13,6 +15,8 @@ const c={
  samplerQC:/sampler-conversation-qc-1\.0\.0/.test(q)&&/criticalFailures/.test(q)&&/scoreWorkflow/.test(q),
  physicianQC:/physician-qc-1\.0-candidate/.test(p)&&/VitaminDSignal/.test(p)&&/isolatedFromQcScore/.test(p),
  localCopilot:/Qwen2\.5-0\.5B-Instruct/.test(l)&&/حق تغییر امتیاز QC را ندارد/.test(l),
- multiDomain:/پزشکان/.test(ui)&&/نمونه‌گیران/.test(ui)&&/گزارش مدیریتی/.test(ui)
+ multiDomain:/پزشکان/.test(ui)&&/نمونه‌گیران/.test(ui)&&/گزارش مدیریتی/.test(ui),
+ docsAndDocker:docsPresent,
+ repositoryAdapter:fs.existsSync('src/repository.ts')&&fs.existsSync('server/migrations/001_init.sql')
 };
 console.log(c);if(!Object.values(c).every(Boolean))process.exit(1);
