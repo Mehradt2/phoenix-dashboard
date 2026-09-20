@@ -16,7 +16,7 @@ const c={
  physicianQC:/physician-qc-1\.1\.0/.test(p)&&/VitaminDSignal/.test(p)&&/isolatedFromQcScore/.test(p)&&/scorePhysicianWorkflow/.test(p),
  localCopilot:/Qwen2\.5-0\.5B-Instruct/.test(l)&&/حق تغییر امتیاز QC را ندارد/.test(l),
  multiDomain:/پزشکان/.test(ui)&&/نمونه‌گیران/.test(ui)&&/گزارش مدیریتی/.test(ui),
- operationalPolicy:/PH-OPS-01/.test(op)&&/SA-OPS-01/.test(op)&&/150/.test(op)&&/۲۰ ثانیه/.test(op),
+ operationalPolicy:/PH-OPS-01/.test(op)&&/SA-OPS-01/.test(op)&&/۱۵۰ دقیقه/.test(op)&&/۲۰ ثانیه/.test(op),
  docsAndDocker:docsPresent,
  repositoryAdapter:fs.existsSync('src/repository.ts')&&fs.existsSync('server/migrations/001_init.sql')
 };
