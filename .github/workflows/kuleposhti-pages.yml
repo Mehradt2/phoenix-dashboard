@@ -31,6 +31,7 @@ jobs:
         run: |
           npm install
           npm run check
+          npm test
           npm run build
           test -s dist/index.html
           test -n "$(find dist/assets -type f -name '*.js' -print -quit)"
