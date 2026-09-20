@@ -1,0 +1,58 @@
+{
+  "product": "KulePoshti",
+  "snapshot_date": "2026-09-21",
+  "public_operator_url": "https://mehradt2.github.io/phoenix-dashboard/",
+  "public_release_sha": "869e5e781b6e10e8251322eea28eebbf17e25af1",
+  "team_docker_verified_sha": "4a429f85ea8d882df66306ee9cfa0b4f44cdae0e",
+  "team_docker_ci": "PASS",
+  "ghcr": {
+    "web": "ghcr.io/mehradt2/kuleposhti-web:4a429f85ea8d882df66306ee9cfa0b4f44cdae0e",
+    "api": "ghcr.io/mehradt2/kuleposhti-api:4a429f85ea8d882df66306ee9cfa0b4f44cdae0e"
+  },
+  "runtimes": {
+    "browser_local": {
+      "operational": true,
+      "shared_db": false,
+      "audio_cloud": false,
+      "storage": "AES-GCM encrypted IndexedDB"
+    },
+    "team_docker": {
+      "integration_verified": true,
+      "shared_db": true,
+      "database": "PostgreSQL 16",
+      "auth": "HttpOnly server session + RBAC",
+      "audio_cloud": false
+    },
+    "windows_offline": {
+      "target": "Tauri/Rust + SQLite WAL + whisper.cpp",
+      "production_evidence": "pending"
+    }
+  },
+  "core_capabilities": [
+    "Physician QC",
+    "Sampler QC",
+    "Evidence-first rules",
+    "Human review",
+    "Profiles",
+    "Executive reports",
+    "Risk/Pareto",
+    "Versioned rule packs",
+    "Local Whisper",
+    "Local AI Copilot",
+    "Audit",
+    "Backup/Restore",
+    "RBAC",
+    "Docker recovery"
+  ],
+  "invariants": [
+    "Documentation updated with releases",
+    "Docker path maintained",
+    "No raw audio to Team API",
+    "No paid AI dependency in critical path",
+    "AI cannot mutate deterministic score",
+    "Critical findings require human action",
+    "Audit append-only",
+    "Repository adapters isolate storage"
+  ],
+  "docs_entry": "docs/00_INDEX_FA.md"
+}
