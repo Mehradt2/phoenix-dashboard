@@ -53,7 +53,7 @@ jobs:
           touch .nojekyll
           printf '%s\n' \
             "source_branch=kuleposhti-operational-web-v1" \
-            "source_sha=\${GITHUB_SHA}" \
+            "source_sha=$GITHUB_SHA" \
             "published_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             "runtime=browser-local" \
             "audio_cloud_transport=false" \
@@ -65,5 +65,5 @@ jobs:
             echo "NO_SITE_DIFF"
             exit 0
           fi
-          git commit -m "Release operational web \${GITHUB_SHA}"
+          git commit -m "Release operational web $GITHUB_SHA"
           git push origin HEAD:main
