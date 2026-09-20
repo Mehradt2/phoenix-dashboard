@@ -1,0 +1,122 @@
+name: KulePoshti Team Docker
+
+on:
+  push:
+    branches: [kuleposhti-operational-web-v1]
+    paths:
+      - 'src/**'
+      - 'server/**'
+      - 'docker/**'
+      - 'docker-compose*.yml'
+      - 'ops/**'
+      - 'package.json'
+      - 'index.html'
+      - 'public/**'
+      - '.github/workflows/kuleposhti-docker.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Frontend checks
+        run: |
+          npm install
+          npm run check
+          npm test
+          npm run build
+      - name: API checks
+        working-directory: server
+        run: |
+          npm install
+          npm test
+          node --check src/index.mjs
+          node --check src/migrate.mjs
+      - name: Compose config
+        env:
+          DOMAIN: localhost
+          POSTGRES_PASSWORD: ci-postgres-password-2026
+          DATA_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          BOOTSTRAP_ADMIN_EMAIL: qc-admin@example.org
+          BOOTSTRAP_ADMIN_PASSWORD: CI-Strong-Passphrase-2026!
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml config >/tmp/kp-compose.yml
+
+  integration:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DOMAIN: localhost
+      POSTGRES_DB: kuleposhti
+      POSTGRES_USER: kuleposhti
+      POSTGRES_PASSWORD: ci-postgres-password-2026
+      DATA_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      BOOTSTRAP_ADMIN_EMAIL: qc-admin@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: CI-Strong-Passphrase-2026!
+      KP_RELEASE: ci-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start team stack
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.local.yml build api web migrate
+          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d db
+          docker compose -f docker-compose.yml -f docker-compose.local.yml run --rm migrate
+          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d api web
+      - name: Wait for runtime
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8088/healthz >/dev/null && curl -fsS http://localhost:8088/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          docker compose -f docker-compose.yml -f docker-compose.local.yml ps
+          docker compose -f docker-compose.yml -f docker-compose.local.yml logs --tail=200
+          exit 1
+      - name: Auth and RBAC smoke
+        run: |
+          curl -fsS -c /tmp/kp.cookies -H 'Content-Type: application/json'             -d '{"email":"qc-admin@example.org","password":"CI-Strong-Passphrase-2026!"}'             http://localhost:8088/api/auth/login | grep -q '"role":"admin"'
+          curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/auth/me | grep -q 'qc-admin@example.org'
+          curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/cases | grep -q '"cases"'
+          curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/audit | grep -q '"audit"'
+      - name: Runtime config is Team Mode
+        run: curl -fsS http://localhost:8088/runtime-config.js | grep -q 'mode:"team"'
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml logs --tail=250
+      - name: Shutdown
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml down -v
+
+  publish:
+    needs: integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - {name: web, file: docker/web/Dockerfile}
+          - {name: api, file: docker/api/Dockerfile}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.target.file }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/kuleposhti-${{ matrix.target.name }}:team-latest
+            ghcr.io/${{ github.repository_owner }}/kuleposhti-${{ matrix.target.name }}:${{ github.sha }}
