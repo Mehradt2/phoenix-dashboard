@@ -7,9 +7,10 @@ Base: همان Origin رابط کاربری، Prefix: `/api`
 بدون Auth؛ برای Load balancer/SRE.
 
 ## Auth
+- `GET /api/auth/session` — probe بدون خطای 401؛ قبل از Login، `user:null`
 - `POST /api/auth/login`
 - `POST /api/auth/logout`
-- `GET /api/auth/me`
+- `GET /api/auth/me` — endpoint محافظت‌شده برای نشست معتبر
 
 Session در Cookie HttpOnly + SameSite=Strict.
 
