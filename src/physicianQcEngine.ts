@@ -22,7 +22,7 @@ export const emptyPhysicianWorkflow:PhysicianWorkflowEvidence={
  visitOutcome:'unknown',visitAttempts:0,interpretationApplicable:'unknown',interpretationOutcome:'unknown',interpretationAttempts:0,responseRecorded:'unknown',serviceChannel:'unknown',secondOrgPrescription:'unknown',cancelled:'unknown',cancellationDuringVisit:'unknown',goldenTests:'unknown',reviewerNote:''
 };
 
-const norm=(s:string)=>s.replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[ۀة]/g,'ه').replace(/[ؤ]/g,'و').replace(/[إأآ]/g,'ا').replace(/[۰-۹]/g,d=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/\s+/g,' ').trim();
+const norm=(s:string)=>s.replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[ۀة]/g,'ه').replace(/[ؤ]/g,'و').replace(/[إأ]/g,'ا').replace(/[۰-۹]/g,d=>String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))).replace(/[٠-٩]/g,d=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))).replace(/\s+/g,' ').trim();
 const clip=(t:string,p:RegExp)=>{const m=t.match(p);if(!m)return[];const i=m.index||0;return[t.slice(Math.max(0,i-48),Math.min(t.length,i+m[0].length+72))]};
 type Rule={id:string;label:string;weight:number;critical:boolean;primary:RegExp[];support?:RegExp[];negative?:RegExp[]};
 export const PHYSICIAN_RULES:Rule[]=[
