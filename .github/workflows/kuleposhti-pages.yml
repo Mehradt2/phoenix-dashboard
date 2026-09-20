@@ -36,6 +36,23 @@ jobs:
           test -n "$(find dist/assets -type f -name '*.js' -print -quit)"
           test -n "$(find dist/assets -type f -name '*.css' -print -quit)"
 
+      - name: Install Chromium for runtime smoke
+        working-directory: source
+        run: npx playwright install --with-deps chromium
+
+      - name: Local browser runtime smoke
+        working-directory: source
+        shell: bash
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 > /tmp/kp-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill $PREVIEW_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/phoenix-dashboard/ >/dev/null; then break; fi
+            sleep 1
+          done
+          KP_SMOKE_URL=http://127.0.0.1:4173/phoenix-dashboard/ npm run smoke:browser
+
       - name: Checkout Pages branch
         uses: actions/checkout@v4
         with:
@@ -67,3 +84,22 @@ jobs:
           fi
           git commit -m "Release operational web $GITHUB_SHA"
           git push origin HEAD:main
+
+      - name: Verify public GitHub Pages release and runtime
+        working-directory: source
+        shell: bash
+        run: |
+          EXPECTED="$GITHUB_SHA"
+          RELEASE_URL="https://mehradt2.github.io/phoenix-dashboard/RELEASE.txt"
+          PAGE_URL="https://mehradt2.github.io/phoenix-dashboard/?release=$GITHUB_SHA"
+          MATCHED=0
+          for i in $(seq 1 48); do
+            BODY="$(curl -fsS "$RELEASE_URL?ts=$(date +%s)" || true)"
+            if printf '%s' "$BODY" | grep -q "source_sha=$EXPECTED"; then
+              MATCHED=1
+              break
+            fi
+            sleep 5
+          done
+          test "$MATCHED" -eq 1
+          KP_SMOKE_URL="$PAGE_URL" npm run smoke:browser
