@@ -64,8 +64,9 @@ jobs:
         shell: bash
         run: |
           cd publish
-          rm -rf assets index.html 404.html
+          rm -rf assets index.html 404.html runtime-config.js
           cp -a ../source/dist/index.html ./index.html
+          cp -a ../source/dist/runtime-config.js ./runtime-config.js
           cp -a ../source/dist/assets ./assets
           cp ./index.html ./404.html
           touch .nojekyll
