@@ -1,6 +1,6 @@
 source_branch=kuleposhti-operational-web-v1
-source_sha=${GITHUB_SHA}
-published_at=2026-09-20T21:16:36Z
+source_sha=a5ae8edd7d9a09934256d52eea61ade34d4089b7
+published_at=2026-09-20T21:18:36Z
 runtime=browser-local
 audio_cloud_transport=false
 paid_asr_api=false
