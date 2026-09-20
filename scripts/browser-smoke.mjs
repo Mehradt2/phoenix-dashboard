@@ -12,30 +12,50 @@ async function basic(name,init){
   if(!response||!response.ok())throw new Error(name+': navigation_failed status='+(response?.status()??'none'));
   await page.waitForTimeout(900);
   const body=(await page.locator('body').innerText()).trim();
-  if(!body.includes('کوله‌پشتی عملیاتی'))throw new Error(name+': shell_missing '+body.slice(0,300));
+  if(!body.includes('کوله‌پشتی'))throw new Error(name+': shell_missing '+body.slice(0,300));
+  if(body.length<20)throw new Error(name+': blank_page');
   if(errors.length)throw new Error(name+': runtime_errors '+errors.join(' | '));
   await context.close();
 }
 async function operationalUnlock(){
-  const context=await browser.newContext();
+  const context=await browser.newContext({viewport:{width:1440,height:1000}});
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push('pageerror:'+e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
   const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
   if(!response||!response.ok())throw new Error('unlock:navigation_failed');
   await page.locator('input[type=password]').fill('Kp-Test-Passphrase-2026');
-  const create=page.getByRole('button',{name:'ساخت Vault'});
-  if(await create.count())await create.click();else await page.getByRole('button',{name:'باز کردن Vault'}).click();
-  await page.getByText('Upload Center نمونه‌گیر').waitFor({state:'visible',timeout:15000});
-  await page.getByText('صف بررسی').waitFor({state:'visible',timeout:5000});await page.getByText('قواعد QC').click();await page.getByText('Rule Pack مکالمه نمونه‌گیر').waitFor({state:'visible',timeout:5000});await page.getByText('Policy Conflict ثبت‌شده').waitFor({state:'visible',timeout:5000});
+  const create=page.getByRole('button',{name:/ساخت Vault/});
+  if(await create.count())await create.click();else await page.getByRole('button',{name:/ورود به کوله‌پشتی/}).click();
+
+  await page.getByText('از مکالمه خام تا اقدام اصلاحی').waitFor({state:'visible',timeout:15000});
+  await page.getByRole('button',{name:'ورودی مکالمات'}).click();
+  await page.getByText('ورودی مکالمات نمونه‌گیران').waitFor({state:'visible',timeout:5000});
+  await page.getByRole('button',{name:'قواعد QC'}).click();
+  await page.getByText('Rule Pack نمونه‌گیران').waitFor({state:'visible',timeout:5000});
+  await page.getByText('Policy Conflict').waitFor({state:'visible',timeout:5000});
+
+  await page.getByRole('button',{name:'پزشکان'}).click();
+  await page.getByRole('button',{name:'قواعد QC'}).click();
+  await page.getByText('Rule Pack پزشکان').waitFor({state:'visible',timeout:5000});
+  await page.getByText('Physician Candidate Gate').waitFor({state:'visible',timeout:5000});
+
+  await page.getByRole('button',{name:'گزارش‌ها'}).click();
+  await page.getByText('گزارش مدیریتی پزشکان').waitFor({state:'visible',timeout:5000});
   const body=(await page.locator('body').innerText()).trim();
   if(body.includes('Runtime Recovery'))throw new Error('unlock:runtime_recovery_visible');
   if(errors.length)throw new Error('unlock:runtime_errors '+errors.join(' | '));
-  console.log(JSON.stringify({case:'vault-unlock-operational',ok:true,status:response.status(),bodySample:body.slice(0,220)}));
+  console.log(JSON.stringify({case:'multi-domain-operational-shell',ok:true,status:response.status(),bodySample:body.slice(0,260)}));
   await context.close();
+}
+async function mobileShell(){
+ const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage(),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+ const body=(await page.locator('body').innerText()).trim();if(!body.includes('کوله‌پشتی'))throw new Error('mobile_shell_missing');if(errors.length)throw new Error('mobile_runtime:'+errors.join('|'));await context.close();
 }
 await basic('normal-shell');
 await operationalUnlock();
+await mobileShell();
 await basic('localStorage-blocked',()=>{try{Object.defineProperty(Storage.prototype,'getItem',{value(){throw new DOMException('blocked','SecurityError')}});Object.defineProperty(Storage.prototype,'setItem',{value(){throw new DOMException('blocked','SecurityError')}})}catch{}});
 await basic('indexedDB-blocked',()=>{try{Object.defineProperty(globalThis,'indexedDB',{value:undefined,configurable:true})}catch{}});
 await browser.close();
