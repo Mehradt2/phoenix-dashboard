@@ -26,3 +26,7 @@ export async function submitReview(id:string,decision:Review['decision'],workflo
 }
 export async function exportBackup(){if(!isTeamMode())return vault.exportBackup();throw new Error('در Team Mode، Backup در سطح PostgreSQL/Docker مدیریت می‌شود.')}
 export async function importBackup(b:any){if(!isTeamMode())return vault.importBackup(b);throw new Error('Restore در Team Mode فقط توسط مدیر زیرساخت و Runbook انجام می‌شود.')}
+
+export async function listUsers():Promise<TeamUser[]>{if(!isTeamMode())return[];return(await api('/api/users')).users}
+export async function createUser(input:{email:string;displayName:string;role:TeamUser['role'];password:string}):Promise<TeamUser>{if(!isTeamMode())throw new Error('team_mode_required');return(await api('/api/users',{method:'POST',body:JSON.stringify(input)})).user}
+export async function updateUser(id:string,input:{active:boolean;role?:TeamUser['role']}):Promise<void>{if(!isTeamMode())throw new Error('team_mode_required');await api('/api/users/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(input)})}
