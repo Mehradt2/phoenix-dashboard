@@ -1,0 +1,10 @@
+services:
+  api:
+    environment:
+      COOKIE_SECURE: "false"
+      ALLOWED_ORIGINS: http://localhost:8088
+  web:
+    ports:
+      - "8088:80"
+  caddy:
+    profiles: ["tls"]
