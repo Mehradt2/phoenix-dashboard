@@ -1,0 +1,15 @@
+import{chromium}from'playwright';
+const url=process.env.KP_TEAM_URL||'http://localhost:8088',email=process.env.KP_TEAM_EMAIL,password=process.env.KP_TEAM_PASSWORD;
+if(!email||!password)throw new Error('team smoke credentials missing');
+const browser=await chromium.launch({headless:true}),context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage(),errors=[];
+page.on('pageerror',e=>errors.push('pageerror:'+e.message));page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+let r=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});if(!r?.ok())throw new Error('navigation failed');
+await page.getByText('کوله‌پشتی تیم QC').waitFor({state:'visible',timeout:15000});
+await page.getByPlaceholder('ایمیل سازمانی').fill(email);await page.getByPlaceholder('رمز عبور').fill(password);await page.getByRole('button',{name:'ورود به فضای تیم'}).click();
+await page.getByText('از مکالمه خام تا اقدام اصلاحی').waitFor({state:'visible',timeout:15000});
+await page.getByRole('button',{name:'پزشکان'}).click();await page.getByRole('button',{name:'گزارش‌ها'}).click();await page.getByText('گزارش مدیریتی پزشکان').waitFor({state:'visible',timeout:5000});
+await page.getByRole('button',{name:'نمونه‌گیران'}).click();await page.getByRole('button',{name:'صف بررسی'}).click();await page.getByText('صف Review').waitFor({state:'visible',timeout:5000});
+await page.getByRole('button',{name:'سیستم و بازیابی'}).click();await page.getByText('Team PostgreSQL').waitFor({state:'visible',timeout:5000});await page.getByText('مدیریت کاربران تیم').waitFor({state:'visible',timeout:5000});
+await page.getByPlaceholder('نام نمایشی').fill('CI Reviewer');await page.getByPlaceholder('ایمیل').fill('ci-reviewer@example.org');await page.locator('.user-create select').selectOption('reviewer');await page.getByPlaceholder('رمز اولیه ≥۱۲ کاراکتر').fill('CI-Reviewer-Pass-2026!');await page.getByRole('button',{name:'ایجاد کاربر'}).click();await page.getByText('ci-reviewer@example.org').waitFor({state:'visible',timeout:7000});
+const body=(await page.locator('body').innerText()).trim();if(body.includes('Runtime Recovery'))throw new Error('runtime recovery visible');if(errors.length)throw new Error(errors.join(' | '));
+console.log(JSON.stringify({ok:true,case:'team-browser-login-rbac-navigation-users'}));await browser.close();
