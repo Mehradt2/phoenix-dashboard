@@ -24,6 +24,9 @@
    - Production Evidence مستقل لازم دارد.
 
 ## اسناد اصلی
+- `CURRENT_RELEASE_STATUS_FA.md` — وضعیت Release و Evidence جاری.
+- `QC_OPERATOR_QUICKSTART_FA.md` — راهنمای شروع سریع اپراتور QC.
+- `TECH_HANDOFF_CHECKLIST_FA.md` — چک‌لیست تحویل به مهندسی و زیرساخت.
 - `PRODUCT_ARCHITECTURE_FA.md` — معماری محصول.
 - `DOCKER_TEAM_RUNBOOK_FA.md` — نصب و اجرای Docker.
 - `DOMAIN_AND_TEAM_ACCESS_FA.md` — دامنه، TLS و دسترسی تیم.
