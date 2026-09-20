@@ -37,6 +37,22 @@ jobs:
           test -n "$(find dist/assets -type f -name '*.js' -print -quit)"
           test -n "$(find dist/assets -type f -name '*.css' -print -quit)"
 
+      - name: Package source + docs + Docker recovery bundle
+        working-directory: source
+        shell: bash
+        run: |
+          zip -qr "../KulePoshti_QC_Online_Source_${GITHUB_SHA}.zip" . \
+            -x "node_modules/*" ".git/*" "dist/*"
+          test -s "../KulePoshti_QC_Online_Source_${GITHUB_SHA}.zip"
+
+      - name: Upload immutable recovery bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: kuleposhti-qc-online-source-${{ github.sha }}
+          path: KulePoshti_QC_Online_Source_${{ github.sha }}.zip
+          if-no-files-found: error
+          retention-days: 90
+
       - name: Install Chromium for runtime smoke
         working-directory: source
         run: npx playwright install --with-deps chromium
