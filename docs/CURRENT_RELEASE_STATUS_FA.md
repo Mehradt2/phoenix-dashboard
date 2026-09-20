@@ -5,50 +5,69 @@
 ## Runtime عمومی فوری
 - URL: `https://mehradt2.github.io/phoenix-dashboard/`
 - Mode: Browser Local
-- Release SHA منتشرشده: `869e5e781b6e10e8251322eea28eebbf17e25af1`
-- GitHub Pages CI: **PASS**
-- مناسب برای اپراتور QC: **YES — با Vault مستقل هر مرورگر**
-- Shared Team DB: **NO در این URL**
+- Source of truth برای SHA فعال: فایل `RELEASE.txt` روی همان دامنه
+- Vault: Encrypted IndexedDB
+- Shared Team DB در URL عمومی: خیر
+- Audio Cloud Upload: صفر
+- Paid AI/API dependency: صفر
+
+## اصلاحات Release جاری
+این Release برای برطرف‌کردن Gapهای مشاهده‌شده در فلو واقعی QC ایجاد شده است:
+- Pipeline پردازش دیگر Success جعلی نشان نمی‌دهد؛ فقط پرونده واقعاً ذخیره‌شده وارد Review می‌شود.
+- بارگذاری Whisper دارای Timeout و Safe Fallback به مدل کوچک‌تر است.
+- هر فایل در صف، مسیر Transcript دستی و Retry دارد.
+- پس از ساخت موفق پرونده، کاربر مستقیم به صف Review منتقل می‌شود.
+- صف Review فقط پرونده‌های باز را نشان می‌دهد.
+- Rule Pack نمونه‌گیران: `sampler-conversation-qc-1.1.0`.
+- Rule Pack پزشکان: `physician-qc-1.1.0`.
+- Physician Workflow Gate اضافه شده: ویزیت/تفسیر/ثبت پاسخ/کانال سازمانی/نسخه دوم/کنسلی/تست طلایی.
+- Operational Policy نسخه‌دار برای پزشک و نمونه‌گیر اضافه شده است.
+- پرونده فردی پزشک/نمونه‌گیر دارای Drill-down تماس، Failure Pareto، Critical، Review باز و سیگنال طول تماس است.
+- CI علاوه بر Build/Test، Source + Docs + Docker را به‌صورت Recovery Artifact immutable بسته‌بندی می‌کند.
 
 ## Team Docker Runtime
-آخرین کد Docker/Backend که Full Integration PASS گرفته:
-- Source SHA: `4a429f85ea8d882df66306ee9cfa0b4f44cdae0e`
-- Workflow: KulePoshti Team Docker
-- Validate: **PASS**
-- PostgreSQL migration: **PASS**
-- API health: **PASS**
-- Auth/RBAC smoke: **PASS**
-- Team browser E2E: **PASS**
-- User management E2E: **PASS**
-- Web image publish: **PASS**
-- API image publish: **PASS**
+معماری:
+`React/Nginx → Node API → PostgreSQL 16` با Caddy TLS.
 
-Images:
-- `ghcr.io/mehradt2/kuleposhti-web:4a429f85ea8d882df66306ee9cfa0b4f44cdae0e`
-- `ghcr.io/mehradt2/kuleposhti-api:4a429f85ea8d882df66306ee9cfa0b4f44cdae0e`
+کنترل‌های اصلی:
+- Login + RBAC
+- Team shared cases/reviews/reports
+- Transcript encryption at rest
+- Append-only audit
+- Versioned rule packs
+- Audio خام به API ارسال نمی‌شود
+- DB migration نسخه‌دار
+- Docker/CI integration gate
 
-## تفاوت دو Runtime
+## تفاوت Browser Local و Team Docker
 ### Browser Local
-برای شروع فوری تیم، بدون سرور و هزینه:
-- هر اپراتور Vault خودش را دارد.
-- Audio/STT/QC محلی است.
-- Backup رمزگذاری‌شده دستی.
-- داده بین افراد مشترک نیست.
+- شروع سریع برای اپراتور
+- Vault مستقل هر Browser
+- Whisper/AI روی همان دستگاه
+- Backup دستی رمزگذاری‌شده
+- داده بین اپراتورها مشترک نیست
 
 ### Team Docker
-برای کار تیمی واقعی:
-- Login سازمانی.
-- Roleهای operator/reviewer/supervisor/admin.
-- PostgreSQL مشترک.
-- Transcript encrypted-at-rest.
-- Audit append-only.
-- Dashboard و Profile مشترک.
-- Audio خام همچنان به API ارسال نمی‌شود.
+- پایگاه داده مشترک
+- حساب کاربری و RBAC
+- Case/Review مشترک
+- مناسب اتصال به دیتابیس واقعی سازمان
+- Audio همچنان Local-first باقی می‌ماند
 
-## وضعیت Production
-- Browser Local operational: **YES**
-- Team Docker integration-ready: **YES**
-- Team Docker public-domain deployment: **نیازمند Host/DNS متعلق به سازمان**
-- Windows Offline Production evidence: **جریان مستقل؛ هنوز Production PASS نهایی نشده**
+## داده‌هایی که هنوز از منبع بیرونی لازم دارند
+سیستم نباید این موارد را از روی Transcript جعل کند و تا اتصال DB واقعی با برچسب External/Workflow نمایش می‌دهد:
+- تعداد واقعی تلاش‌های تماس در CRM/Call Log
+- نوع سرویس سازمانی/B2C
+- لیست مصوب تست‌های طلایی
+- زمان نمونه‌گیری تا تحویل
+- CSAT نمونه‌گیر
+- علت/زمان کنسلی
+- تحویل ثبت‌نشده و آزادسازی ظرفیت
 
-هیچ Host عمومی اشتراکی برای داده پزشکی بدون تصمیم زیرساخت/حریم‌داده به‌صورت خودکار ایجاد نشده است.
+## Production Gates
+- Browser build/test/smoke: باید در GitHub Actions PASS شود.
+- Team Docker validate/integration/publish: باید PASS شود.
+- Public domain: فقط پس از Release SHA verification.
+- Windows Offline: Evidence track مستقل و هنوز نیازمند Production Gate اختصاصی است.
+
+هیچ Release بدون Source، Docker، Docs، Tests و Recovery Artifact هم‌زمان «Done» محسوب نمی‌شود.
