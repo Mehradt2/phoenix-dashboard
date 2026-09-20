@@ -35,7 +35,8 @@ create table if not exists cases(
  created_by uuid references users(id),
  updated_by uuid references users(id),
  created_at timestamptz not null,
- updated_at timestamptz not null
+ updated_at timestamptz not null,
+ deleted_at timestamptz
 );
 create index if not exists idx_cases_domain_created on cases(domain,created_at desc);
 create index if not exists idx_cases_status on cases(status);
@@ -80,7 +81,7 @@ create table if not exists rule_packs(
 
 create table if not exists audit_events(
  id uuid primary key default gen_random_uuid(),
- case_id uuid references cases(id) on delete set null,
+ case_id uuid references cases(id) on delete restrict,
  actor_id uuid references users(id) on delete set null,
  domain text,
  action text not null,
