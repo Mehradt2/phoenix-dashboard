@@ -1,5 +1,7 @@
 import type{QcDomain}from'./domain';
 
+export const POLICY_RELEASE='qc-online-v1.1.0';
+
 export type OperationalControl={
  id:string;
  label:string;
