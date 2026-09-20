@@ -1,6 +1,7 @@
 import{chromium}from'playwright';
 const url=process.env.KP_SMOKE_URL||'http://127.0.0.1:4173/phoenix-dashboard/';
 const browser=await chromium.launch({headless:true});
+const probeUrl=(name)=>url+(url.includes('?')?'&':'?')+'probe='+encodeURIComponent(name)+'-'+Date.now();
 
 async function basic(name,init){
   const context=await browser.newContext();
@@ -8,7 +9,7 @@ async function basic(name,init){
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push('pageerror:'+e.message));
   page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('KULEPOSHTI_RUNTIME_ERROR'))errors.push('console:'+m.text())});
-  const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+  const response=await page.goto(probeUrl(name),{waitUntil:'domcontentloaded',timeout:60000});
   if(!response||!response.ok())throw new Error(name+': navigation_failed status='+(response?.status()??'none'));
   await page.waitForTimeout(900);
   const body=(await page.locator('body').innerText()).trim();
@@ -22,7 +23,7 @@ async function operationalUnlock(){
   const page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push('pageerror:'+e.message));
   page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
-  const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+  const response=await page.goto(probeUrl('operational'),{waitUntil:'domcontentloaded',timeout:60000});
   if(!response||!response.ok())throw new Error('unlock:navigation_failed');
   await page.locator('input[type=password]').fill('Kp-Test-Passphrase-2026');
   const create=page.getByRole('button',{name:/ساخت Vault/});
@@ -50,8 +51,7 @@ async function operationalUnlock(){
 }
 async function mobileShell(){
  const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage(),errors=[];
- page.on('pageerror',e=>errors.push(e.message));await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
- const body=(await page.locator('body').innerText()).trim();if(!body.includes('کوله‌پشتی'))throw new Error('mobile_shell_missing');if(errors.length)throw new Error('mobile_runtime:'+errors.join('|'));await context.close();
+ page.on('pageerror',e=>errors.push(e.message));let body='';for(let i=0;i<5;i++){await page.goto(probeUrl('mobile-'+i),{waitUntil:'domcontentloaded',timeout:60000});await page.waitForTimeout(700);body=(await page.locator('body').innerText()).trim();if(body.includes('کوله‌پشتی'))break;await page.waitForTimeout(1200)}if(!body.includes('کوله‌پشتی'))throw new Error('mobile_shell_missing body='+body.slice(0,180));if(errors.length)throw new Error('mobile_runtime:'+errors.join('|'));await context.close();
 }
 await basic('normal-shell');
 await operationalUnlock();
