@@ -1,5 +1,5 @@
 import fs from'node:fs';
-const a=fs.readFileSync('src/asr.ts','utf8'),v=fs.readFileSync('src/vault.ts','utf8'),m=fs.readFileSync('src/modelPolicy.ts','utf8'),mr=fs.readFileSync('src/modelRuntime.ts','utf8'),q=fs.readFileSync('src/qcEngine.ts','utf8'),p=fs.readFileSync('src/physicianQcEngine.ts','utf8'),op=fs.readFileSync('src/operationalPolicy.ts','utf8'),l=fs.readFileSync('src/localAi.ts','utf8'),ui=fs.readFileSync('src/main.tsx','utf8'),sr=fs.readFileSync('src/samplerRegistry.ts','utf8'),api=fs.readFileSync('server/src/index.mjs','utf8');
+const a=fs.readFileSync('src/asr.ts','utf8'),v=fs.readFileSync('src/vault.ts','utf8'),m=fs.readFileSync('src/modelPolicy.ts','utf8'),mr=fs.readFileSync('src/modelRuntime.ts','utf8'),q=fs.readFileSync('src/qcEngine.ts','utf8'),p=fs.readFileSync('src/physicianQcEngine.ts','utf8'),op=fs.readFileSync('src/operationalPolicy.ts','utf8'),l=fs.readFileSync('src/localAi.ts','utf8'),ui=fs.readFileSync('src/main.tsx','utf8'),sr=fs.readFileSync('src/samplerRegistry.ts','utf8'),api=fs.readFileSync('server/src/index.mjs','utf8'),tc=fs.readFileSync('src-tauri/tauri.conf.json','utf8'),tr=fs.readFileSync('src-tauri/src/main.rs','utf8');
 const all=a+m+l;
 const requiredDocs=['docs/00_INDEX_FA.md','docs/PRODUCT_ARCHITECTURE_FA.md','docs/DOCKER_TEAM_RUNBOOK_FA.md','docs/DATABASE_SCHEMA_FA.md','docs/API_CONTRACT_FA.md','docs/SECURITY_PRIVACY_FA.md','docs/RECOVERY_DR_FA.md','docs/OBSERVABILITY_SRE_FA.md','docs/KNOWLEDGE_BASE_OPERATIONS_FA.md','knowledge/PROJECT_KNOWLEDGE.json','docker-compose.yml','.env.example'];
 const docsPresent=requiredDocs.every(x=>fs.existsSync(x));
@@ -22,7 +22,7 @@ const c={
  samplerDateReporting:/occurredAt/.test(ui)&&/ماه شمسی/.test(ui)&&/جزئیات مکالمات/.test(ui)&&/PersianDate/.test(ui),
  samplerTeamPersistence:fs.existsSync('server/migrations/002_sampler_registry_case_date.sql')&&/\/api\/samplers/.test(api)&&/occurred_at/.test(api),
  offlineModelRuntime:/allowRemoteModels:source!==\'bundled\'/.test(mr)&&/allowLocalModels:source===\'bundled\'/.test(mr)&&/localModelPath/.test(mr)&&fs.existsSync('offline/model-pack.json')&&fs.existsSync('docker-compose.offline.yml'),
- windowsOfflineScaffold:fs.existsSync('src-tauri/tauri.conf.json')&&fs.existsSync('src-tauri/src/main.rs')&&fs.existsSync('scripts/build-desktop.mjs'),
+ windowsOfflineScaffold:/bundle/.test(tc)&&/resources/.test(tc)&&/assetProtocol/.test(tc)&&/\$RESOURCE\/models/.test(tc)&&/model_base_path/.test(tr)&&/convertFileSrc/.test(mr)&&fs.existsSync('scripts/build-desktop.mjs'),
  repositoryAdapter:fs.existsSync('src/repository.ts')&&fs.existsSync('server/migrations/001_init.sql')
 };
 console.log(c);if(!Object.values(c).every(Boolean))process.exit(1);
