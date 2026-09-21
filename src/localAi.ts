@@ -31,6 +31,7 @@ export async function localAiStatus(){
   device,
   dtype,
   modelRuntime:runtime,
+  modelProfile:(await import('./runtime')).RUNTIME.modelProfile,
   hardware:h,
   advisoryOnly:true,
   scoreMutation:false,
