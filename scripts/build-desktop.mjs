@@ -2,6 +2,7 @@ import{spawnSync}from'node:child_process';import fs from'node:fs';import path fr
 const root=process.cwd(),pack=path.resolve(process.env.KP_MODEL_PACK_DIR||'offline-models'),profile=process.env.KP_MODEL_PACK_PROFILE||'portable';
 function run(cmd,args,extra={}){const r=spawnSync(cmd,args,{cwd:root,stdio:'inherit',shell:process.platform==='win32',env:{...process.env,...extra}});if(r.status!==0)process.exit(r.status||1)}
 run(process.execPath,['scripts/verify-offline-model-pack.mjs',pack,profile]);
+run(process.platform==='win32'?'npm.cmd':'npm',['run','desktop:icons']);
 run(process.platform==='win32'?'npm.cmd':'npm',['run','build'],{KP_BASE:'./'});
 fs.writeFileSync(path.join(root,'dist','runtime-config.js'),`window.__KP_RUNTIME__={mode:"local",apiBase:"",release:"windows-offline",modelSource:"bundled",modelBase:"./models/",modelProfile:"${profile}"};\n`);
 const lock=path.join(pack,'model-pack.lock.json'),lockData=fs.existsSync(lock)?JSON.parse(fs.readFileSync(lock,'utf8')):null;
