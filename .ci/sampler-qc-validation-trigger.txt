@@ -1,0 +1,1 @@
+Validate kuleposhti-operational-web-v1 sampler QC release on 2026-09-21.
