@@ -3,5 +3,6 @@ services:
     environment:
       KP_MODEL_SOURCE: bundled
       KP_MODEL_BASE: /models/
+      KP_MODEL_PROFILE: ${KP_MODEL_PROFILE:-portable}
     volumes:
       - ./offline-models:/usr/share/nginx/html/models:ro
