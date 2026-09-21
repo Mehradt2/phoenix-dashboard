@@ -25,6 +25,20 @@ jobs:
           npm run check
           npm test
           npm run build
+      - name: Package immutable source recovery bundle
+        shell: bash
+        run: |
+          SHA=$(git rev-parse HEAD)
+          zip -qr "../KulePoshti_QC_Online_Source_${SHA}.zip" . -x "node_modules/*" ".git/*" "dist/*"
+          test -s "../KulePoshti_QC_Online_Source_${SHA}.zip"
+          echo "SOURCE_SHA=${SHA}" >> "$GITHUB_ENV"
+      - name: Upload source recovery artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kuleposhti-qc-online-source-${{ env.SOURCE_SHA }}
+          path: ../KulePoshti_QC_Online_Source_${{ env.SOURCE_SHA }}.zip
+          if-no-files-found: error
+          retention-days: 90
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Create Persian WAV fixtures
