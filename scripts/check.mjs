@@ -13,7 +13,7 @@ const c={
  autoStable:/Auto عمداً Small/.test(m),
  batch:/slice\(0,100\)/.test(ui),
  samplerQC:/sampler-conversation-qc-1\.1\.0/.test(q)&&/criticalFailures/.test(q)&&/scoreWorkflow/.test(q),
- physicianQC:/physician-qc-1\.1\.0/.test(p)&&/VitaminDSignal/.test(p)&&/isolatedFromQcScore/.test(p)&&/scorePhysicianWorkflow/.test(p),
+ physicianQC:/physician-qc-2\.0\.0/.test(p)&&/PVQ-026/.test(p)&&/PVQ-040/.test(p)&&/DOC-009/.test(p)&&/ParticipantState/.test(p)&&/scorePhysicianWorkflow/.test(p),
  localCopilot:/Qwen2\.5-0\.5B-Instruct/.test(l)&&/حق تغییر امتیاز QC را ندارد/.test(l),
  multiDomain:/پزشکان/.test(ui)&&/نمونه‌گیران/.test(ui)&&/گزارش مدیریتی/.test(ui),
  operationalPolicy:/PH-OPS-01/.test(op)&&/SA-OPS-01/.test(op)&&/۱۵۰ دقیقه/.test(op)&&/۲۰ ثانیه/.test(op),
