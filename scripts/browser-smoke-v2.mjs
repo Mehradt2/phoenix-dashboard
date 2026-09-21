@@ -82,7 +82,9 @@ await manualCase(page,{domain:'physician',person:'پزشک تست E2E',fileName:
 if(process.env.KP_ASR_SMOKE==='1'){
  await page.locator('.sidebar nav button').filter({hasText:'AI و مدل‌ها'}).click();
  await page.getByRole('button',{name:/آماده‌سازی و Cache مدل/}).click();
- await page.getByText('مدل آماده شد.').waitFor({state:'visible',timeout:300000});
+ await page.waitForFunction(()=>{const t=document.body.innerText;return t.includes('مدل آماده شد.')||t.includes('مدل آماده نشد:')},{timeout:210000});
+ const modelState=await page.locator('body').innerText();
+ if(modelState.includes('مدل آماده نشد:')){const line=modelState.split('\n').find(x=>x.includes('مدل آماده نشد:'))||'model failed';throw new Error('ASR_MODEL_WARM_FAILED: '+line)}
  const st=await realAsrCase(page,{domain:'sampler',person:'محمد حسین محمدیانی',filePath:process.env.KP_ASR_FIXTURE_SAMPLER,date:'2026-09-21'});
  const pt=await realAsrCase(page,{domain:'physician',person:'پزشک ASR واقعی',filePath:process.env.KP_ASR_FIXTURE_PHYSICIAN});
  await duplicateGuard(page,process.env.KP_ASR_FIXTURE_SAMPLER,'محمد حسین محمدیانی');
