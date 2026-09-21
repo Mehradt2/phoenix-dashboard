@@ -10,6 +10,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "کوله‌پشتی · QC Operations OS",
         "width": 1440,
         "height": 940,
@@ -20,12 +21,19 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' ipc: http://ipc.localhost; connect-src 'self' ipc: http://ipc.localhost asset: http://asset.localhost; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' asset: http://asset.localhost data: blob:; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; font-src 'self' data:;",
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$RESOURCE/models/**/*"]
+      }
     }
   },
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "resources": {
+      "../offline-models/": "models/"
+    },
     "shortDescription": "Offline Persian QC with local Whisper and local AI Copilot",
     "longDescription": "KulePoshti QC Operations OS for offline Persian physician and sampler conversation quality control."
   }
