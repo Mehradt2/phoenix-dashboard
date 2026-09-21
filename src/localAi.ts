@@ -24,12 +24,12 @@ function withTimeout<T>(promise:Promise<T>,ms:number,code:string):Promise<T>{
 }
 
 export async function localAiStatus(){
- const h=await probeHardware(),runtime=resolveModelRuntime(),canF16=h.webgpu&&h.webgpuF16;
+ const h=await probeHardware(),runtime=resolveModelRuntime(),device:'webgpu'|'wasm'=h.webgpu?'webgpu':'wasm',dtype=runtime.offlineStrict?'q4':(h.webgpu&&h.webgpuF16?'q4f16':'q4');
  return{
   modelId:MODEL_ID,
   label:'Qwen2.5-0.5B-Instruct',
-  device:canF16?'webgpu':'wasm',
-  dtype:canF16?'q4f16':'q4',
+  device,
+  dtype,
   modelRuntime:runtime,
   hardware:h,
   advisoryOnly:true,
@@ -43,7 +43,7 @@ export async function warmLocalAi(onProgress?:(s:string)=>void){
  if(!pipePromise){
   pipePromise=(async()=>{
    const mod=await import('@huggingface/transformers'),runtime=configureTransformersRuntime(mod),h=await probeHardware();
-   const canF16=h.webgpu&&h.webgpuF16,device:'webgpu'|'wasm'=canF16?'webgpu':'wasm',dtype=canF16?'q4f16':'q4';
+   const device:'webgpu'|'wasm'=h.webgpu?'webgpu':'wasm',dtype=runtime.offlineStrict?'q4':(h.webgpu&&h.webgpuF16?'q4f16':'q4');
    onProgress?.(runtime.offlineStrict?'در حال بارگذاری Copilot از Model Pack آفلاین…':'در حال آماده‌سازی Copilot محلی و Cache مدل…');
    try{
     const pipe=await withTimeout(mod.pipeline('text-generation',MODEL_ID,{device,dtype,progress_callback:(x:any)=>onProgress?.(`Copilot · ${String(x.status||'loading')}${x.progress!=null?' · '+Math.round(Number(x.progress))+'%':''}`)}as any) as Promise<any>,LOAD_TIMEOUT_MS,'LOCAL_AI_MODEL_LOAD_TIMEOUT');
