@@ -14,14 +14,14 @@ const c={
  batch:/slice\(0,100\)/.test(ui),
  samplerQC:/sampler-conversation-qc-1\.1\.0/.test(q)&&/criticalFailures/.test(q)&&/scoreWorkflow/.test(q),
  physicianQC:/physician-qc-2\.0\.0/.test(p)&&/PVQ-026/.test(p)&&/PVQ-040/.test(p)&&/DOC-009/.test(p)&&/ParticipantState/.test(p)&&/scorePhysicianWorkflow/.test(p),
- localCopilot:/Qwen2\.5-0\.5B-Instruct/.test(l)&&/حق تغییر امتیاز QC را ندارد/.test(l),
+ localCopilot:/Qwen2\.5-0\.5B-Instruct/.test(l)&&/scoreMutation:false/.test(l)&&/Advisory|توصیه‌ای/.test(l),
  multiDomain:/پزشکان/.test(ui)&&/نمونه‌گیران/.test(ui)&&/گزارش مدیریتی/.test(ui),
  operationalPolicy:/PH-OPS-01/.test(op)&&/SA-OPS-01/.test(op)&&/۱۵۰ دقیقه/.test(op)&&/۲۰ ثانیه/.test(op),
  docsAndDocker:docsPresent,
  samplerDirectory:/شایان مؤمن زاده/.test(sr)&&/محمد محمدپور حسنوند/.test(sr)&&/ACTIVE_SAMPLERS/.test(sr)&&/persianMonthKey/.test(sr),
  samplerDateReporting:/occurredAt/.test(ui)&&/ماه شمسی/.test(ui)&&/جزئیات مکالمات/.test(ui)&&/PersianDate/.test(ui),
  samplerTeamPersistence:fs.existsSync('server/migrations/002_sampler_registry_case_date.sql')&&/\/api\/samplers/.test(api)&&/occurred_at/.test(api),
- offlineModelRuntime:/allowRemoteModels:p.source!==\'bundled\'/.test(mr)&&/allowLocalModels:p.source===\'bundled\'/.test(mr)&&fs.existsSync('offline/model-pack.json')&&fs.existsSync('docker-compose.offline.yml'),
+ offlineModelRuntime:/allowRemoteModels:source!==\'bundled\'/.test(mr)&&/allowLocalModels:source===\'bundled\'/.test(mr)&&/localModelPath/.test(mr)&&fs.existsSync('offline/model-pack.json')&&fs.existsSync('docker-compose.offline.yml'),
  windowsOfflineScaffold:fs.existsSync('src-tauri/tauri.conf.json')&&fs.existsSync('src-tauri/src/main.rs')&&fs.existsSync('scripts/build-desktop.mjs'),
  repositoryAdapter:fs.existsSync('src/repository.ts')&&fs.existsSync('server/migrations/001_init.sql')
 };
