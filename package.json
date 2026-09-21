@@ -10,7 +10,8 @@
     "test": "vitest run src",
     "models:verify": "node scripts/verify-offline-model-pack.mjs",
     "desktop:assets": "node scripts/build-desktop.mjs",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "desktop:icons": "tauri icon src-tauri/icons/source.svg"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
