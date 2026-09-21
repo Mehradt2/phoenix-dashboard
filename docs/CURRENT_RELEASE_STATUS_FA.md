@@ -14,7 +14,7 @@
 ## اصلاحات Release جاری
 این Release برای برطرف‌کردن Gapهای مشاهده‌شده در فلو واقعی QC ایجاد شده است:
 - Pipeline پردازش دیگر Success جعلی نشان نمی‌دهد؛ فقط پرونده واقعاً ذخیره‌شده وارد Review می‌شود.
-- بارگذاری Whisper Fail-closed است: Auto روی WebGPU از Small و بدون WebGPU از Tiny استفاده می‌کند؛ Timeout مدل ۱۵۰ ثانیه و Fallback نهایی Tiny است. Transcript دستی و Retry نیز به‌عنوان مسیر بازیابی وجود دارد.
+- بارگذاری Whisper Fail-closed است: Auto روی WebGPU از Small با encoder fp32 + decoder q4 و بدون WebGPU از Tiny q8 استفاده می‌کند؛ Timeout مدل ۱۵۰ ثانیه و Fallback نهایی Tiny است. Transcript دستی و Retry نیز مسیر بازیابی است.
 - پس از ساخت موفق پرونده، کاربر مستقیم به صف Review منتقل می‌شود.
 - صف Review فقط پرونده‌های باز را نشان می‌دهد.
 - Rule Pack نمونه‌گیران: `sampler-conversation-qc-1.1.0`.
@@ -25,6 +25,9 @@
 - Master List نمونه‌گیران با ۳۰ فرد فعال، گرید و شهر نسخه‌دار شده؛ افزودن دستی و Team DB persistence فعال است.
 - هر Case نمونه‌گیر `occurredAt` و snapshot گرید/شهر دارد و گزارش بر اساس تاریخ دقیق، روز هفته، ماه شمسی و نام فیلتر و Export می‌شود.
 - Duplicate Guard با SHA-256 از پردازش دوباره فایل صوتی جلوگیری می‌کند.
+- Bundled Offline Model Source اضافه شده: در این حالت Remote model access کاملاً بسته است و Whisper/Qwen فقط از Model Pack محلی بارگذاری می‌شوند.
+- Local Copilot با Qwen2.5-0.5B-Instruct به Runtime مشترک مدل متصل شده و همچنان از Score/Decision ایزوله است.
+- Scaffold ویندوز Tauri 2 + NSIS و Build Asset آفلاین اضافه شده است؛ Production PASS آن فقط پس از Windows Runner و Real Audio اعلام می‌شود.
 - CI علاوه بر Build/Test، Source + Docs + Docker را به‌صورت Recovery Artifact immutable بسته‌بندی می‌کند.
 
 ## Team Docker Runtime
