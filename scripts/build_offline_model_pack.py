@@ -46,6 +46,10 @@ def main():
         repo=model["id"];info=api.model_info(repo);target=out/repo
         print(f"[download] {repo}@{info.sha}")
         snapshot_download(repo_id=repo,revision=info.sha,local_dir=target,allow_patterns=patterns_for(model))
+        cache_dir=target/".cache"
+        if cache_dir.exists():
+            import shutil
+            shutil.rmtree(cache_dir)
         missing=[x for x in model["requiredFiles"] if not (target/x).is_file()]
         if missing: raise SystemExit(f"{repo}: required files missing: {missing}")
         files=[]
