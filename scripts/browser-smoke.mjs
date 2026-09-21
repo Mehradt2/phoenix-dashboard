@@ -18,6 +18,28 @@ async function basic(name,init){
   if(errors.length)throw new Error(name+': runtime_errors '+errors.join(' | '));
   await context.close();
 }
+
+async function manualCase(page,{domain,person,fileName,bytes,transcript,ruleId}){
+  await page.locator('.domain-switch button').filter({hasText:domain==='sampler'?'نمونه‌گیران':'پزشکان'}).click();
+  await page.locator('.sidebar nav button').filter({hasText:'ورودی مکالمات'}).click();
+  await page.getByText(domain==='sampler'?'ورودی مکالمات نمونه‌گیران':'ورودی مکالمات پزشکان').waitFor({state:'visible',timeout:5000});
+  const personInput=page.locator(domain==='sampler'?'input[placeholder*="نمونه‌گیر"]':'input[placeholder*="پزشک"]').first();
+  await personInput.fill(person);
+  const file=page.locator('input[type=file][accept="audio/*"]').first();
+  await file.setInputFiles({name:fileName,mimeType:'audio/wav',buffer:Buffer.from(bytes)});
+  await page.getByRole('button',{name:'Transcript دستی'}).waitFor({state:'visible',timeout:5000});
+  page.once('dialog',async d=>{await d.accept(transcript)});
+  await page.getByRole('button',{name:'Transcript دستی'}).click();
+  await page.getByText('صف Review').waitFor({state:'visible',timeout:8000});
+  await page.getByText(person,{exact:true}).waitFor({state:'visible',timeout:8000});
+  const row=page.locator('tbody tr').filter({hasText:person}).first();
+  await row.getByRole('button',{name:/بررسی/}).click();
+  await page.getByText(ruleId,{exact:false}).first().waitFor({state:'visible',timeout:5000});
+  await page.locator('.review-drawer .icon-only').click();
+  await page.locator('.sidebar nav button').filter({hasText:domain==='sampler'?'نمونه‌گیران':'پزشکان'}).click();
+  await page.getByText(person,{exact:true}).waitFor({state:'visible',timeout:5000});
+}
+
 async function operationalUnlock(){
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
   const page=await context.newPage(),errors=[];
@@ -30,23 +52,36 @@ async function operationalUnlock(){
   if(await create.count())await create.click();else await page.getByRole('button',{name:/ورود به کوله‌پشتی/}).click();
 
   await page.getByText('از مکالمه خام تا اقدام اصلاحی').waitFor({state:'visible',timeout:15000});
-  await page.getByRole('button',{name:'ورودی مکالمات'}).click();
-  await page.getByText('ورودی مکالمات نمونه‌گیران').waitFor({state:'visible',timeout:5000});
-  await page.getByRole('button',{name:'قواعد QC'}).click();
-  await page.getByText('Rule Pack نمونه‌گیران').waitFor({state:'visible',timeout:5000});
-  await page.getByText('Policy Conflict').waitFor({state:'visible',timeout:5000});
 
-  await page.getByRole('button',{name:'پزشکان'}).click();
-  await page.getByRole('button',{name:'قواعد QC'}).click();
+  await manualCase(page,{
+    domain:'sampler',
+    person:'نمونه‌گیر تست E2E',
+    fileName:'sampler-e2e.wav',
+    bytes:'RIFF-SAMPLER-E2E-2026',
+    transcript:'سلام وقت بخیر، من نمونه گیر روبرا هستم. با خود شما برای نمونه گیری تماس گرفتم. فردا ساعت 8 تا 9 خدمت می رسم، این بازه مناسب است؟ لطفا آدرس خیابان آزادی، کوچه ده، پلاک 12 واحد 3 را تایید کنید. قبل از رسیدن تماس می گیرم. برای آزمایش ناشتا باشید، آب ساده مجاز است و چای و قهوه نخورید. سوال یا ابهامی دارید؟ پس فردا ساعت 8 تا 9 در همان آدرس هماهنگ شد، ممنون.',
+    ruleId:'C03'
+  });
+
+  await manualCase(page,{
+    domain:'physician',
+    person:'پزشک تست E2E',
+    fileName:'physician-e2e.wav',
+    bytes:'RIFF-PHYSICIAN-E2E-2026-DIFFERENT',
+    transcript:'سلام وقت بخیر، من پزشک دکترساینا هستم. با خود بیمار صحبت می کنم؟ لطفا نام و مشخصات خودتان را تایید کنید. علت مراجعه چیست و از چه زمانی شروع شده؟ سابقه دیابت، فشار خون یا عمل جراحی دارید؟ چه دارویی مصرف می کنید و دوز آن چند میلی گرم است؟ برای آزمایش لازم است ناشتا باشید. مرحله بعد آزمایش و پیگیری نتیجه است. سوال دیگری دارید؟ ممنون.',
+    ruleId:'PVQ-027'
+  });
+
+  await page.locator('.sidebar nav button').filter({hasText:'قواعد QC'}).click();
   await page.getByText('Rule Pack پزشکان').waitFor({state:'visible',timeout:5000});
-  await page.getByText('Physician Candidate Gate').waitFor({state:'visible',timeout:5000});
-
-  await page.getByRole('button',{name:'گزارش‌ها'}).click();
+  await page.getByText('PVQ-040',{exact:false}).waitFor({state:'visible',timeout:5000});
+  await page.locator('.sidebar nav button').filter({hasText:'گزارش‌ها'}).click();
   await page.getByText('گزارش مدیریتی پزشکان').waitFor({state:'visible',timeout:5000});
+  await page.getByText('پزشک تست E2E',{exact:true}).waitFor({state:'visible',timeout:5000});
+
   const body=(await page.locator('body').innerText()).trim();
   if(body.includes('Runtime Recovery'))throw new Error('unlock:runtime_recovery_visible');
   if(errors.length)throw new Error('unlock:runtime_errors '+errors.join(' | '));
-  console.log(JSON.stringify({case:'multi-domain-operational-shell',ok:true,status:response.status(),bodySample:body.slice(0,260)}));
+  console.log(JSON.stringify({case:'multi-domain-case-pipeline',ok:true,status:response.status(),bodySample:body.slice(0,260)}));
   await context.close();
 }
 async function mobileShell(){
