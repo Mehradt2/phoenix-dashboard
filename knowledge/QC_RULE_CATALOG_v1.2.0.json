@@ -1,0 +1,229 @@
+{
+  "release": "qc-online-v1.2.0",
+  "generated_at": "2026-09-21",
+  "scoring_policy": {
+    "principle": "Evidence-first + Human Review",
+    "sampler_final": "70% conversation + 30% workflow",
+    "physician": "PVQ controlled catalog; no-answer non-scorable; critical/review gates block normal approval",
+    "ai_copilot": "advisory only; cannot mutate deterministic QC score"
+  },
+  "sampler": {
+    "conversation_version": "sampler-conversation-qc-1.1.0",
+    "rules": [
+      {
+        "id": "C01",
+        "label": "شروع حرفه‌ای و معرفی",
+        "weight": 8,
+        "critical": false
+      },
+      {
+        "id": "C02",
+        "label": "تأیید مخاطب/هویت مناسب",
+        "weight": 9,
+        "critical": false
+      },
+      {
+        "id": "C03",
+        "label": "تأیید روز و بازه مراجعه",
+        "weight": 15,
+        "critical": true
+      },
+      {
+        "id": "C04",
+        "label": "تأیید آدرس و جزئیات دسترسی",
+        "weight": 15,
+        "critical": true
+      },
+      {
+        "id": "C05",
+        "label": "اعلام زمان تقریبی/تماس قبل رسیدن",
+        "weight": 10,
+        "critical": false
+      },
+      {
+        "id": "C06",
+        "label": "شرایط آمادگی و ناشتایی",
+        "weight": 20,
+        "critical": true
+      },
+      {
+        "id": "C07",
+        "label": "فرصت سؤال و رفع ابهام",
+        "weight": 8,
+        "critical": false
+      },
+      {
+        "id": "C08",
+        "label": "جمع‌بندی و تأیید نهایی",
+        "weight": 8,
+        "critical": false
+      },
+      {
+        "id": "C09",
+        "label": "لحن محترمانه و حرفه‌ای",
+        "weight": 7,
+        "critical": false
+      }
+    ],
+    "workflow_version": "sampler-workflow-policy-2026-09-21",
+    "workflow_required": [
+      "userAnswered",
+      "nightAttempts",
+      "twentyMinuteSpacing",
+      "morningRetry",
+      "finalStatus",
+      "coordinationRecorded"
+    ],
+    "operational_controls": [
+      "SA-OPS-01",
+      "SA-OPS-02",
+      "SA-OPS-03",
+      "SA-OPS-04",
+      "SA-OPS-05",
+      "SA-OPS-06",
+      "SA-OPS-07",
+      "SA-OPS-08",
+      "SA-OPS-09",
+      "SA-OPS-10",
+      "SA-OPS-11",
+      "SA-OPS-12",
+      "SA-OPS-13",
+      "SA-OPS-14",
+      "SA-OPS-15"
+    ]
+  },
+  "physician": {
+    "conversation_version": "physician-qc-2.0.0",
+    "catalog": "DOC-009 / PVQ-026..040",
+    "rules": [
+      {
+        "id": "PVQ-026",
+        "label": "No Answer / Non-scorable",
+        "severity": "info"
+      },
+      {
+        "id": "PVQ-027",
+        "label": "حضور بیمار هدف و احراز هویت",
+        "severity": "major"
+      },
+      {
+        "id": "PVQ-028",
+        "label": "استثنای ولی معتبر کودک",
+        "severity": "info"
+      },
+      {
+        "id": "PVQ-029",
+        "label": "ویزیت بیمار بالغ با همراه فاقد احراز اختیار",
+        "severity": "critical"
+      },
+      {
+        "id": "PVQ-030",
+        "label": "معرفی برند منطبق با Case",
+        "severity": "major"
+      },
+      {
+        "id": "PVQ-031",
+        "label": "تماس تکراری پزشک",
+        "severity": "major"
+      },
+      {
+        "id": "PVQ-032",
+        "label": "مرز مجاز درخواست تغییر زمان",
+        "severity": "major"
+      },
+      {
+        "id": "PVQ-033",
+        "label": "مرز اختیار کنسلی",
+        "severity": "major"
+      },
+      {
+        "id": "PVQ-034",
+        "label": "ثبت دارو و دوز لازم",
+        "severity": "major"
+      },
+      {
+        "id": "PVQ-035",
+        "label": "کامل بودن شرح حال ساختاریافته و آمادگی آزمایش",
+        "severity": "major"
+      },
+      {
+        "id": "PVQ-036",
+        "label": "قابل فهم بودن Audio",
+        "severity": "minor"
+      },
+      {
+        "id": "PVQ-037",
+        "label": "Communication Energy",
+        "severity": "minor"
+      },
+      {
+        "id": "PVQ-038",
+        "label": "قطعیت پزشکی بدون پشتوانه",
+        "severity": "review"
+      },
+      {
+        "id": "PVQ-039",
+        "label": "Speaker Role Resolution Gate",
+        "severity": "review"
+      },
+      {
+        "id": "PVQ-040",
+        "label": "Low Confidence Human Review Gate",
+        "severity": "review"
+      }
+    ],
+    "workflow_required": [
+      "visitOutcome",
+      "visitAttempts",
+      "interpretationApplicable",
+      "interpretationOutcome",
+      "interpretationAttempts",
+      "responseRecorded",
+      "serviceChannel",
+      "secondOrgPrescription",
+      "cancelled",
+      "cancellationDuringVisit",
+      "goldenTests",
+      "participantState",
+      "patientAgeGroup",
+      "identityVerified",
+      "expectedBrand",
+      "duplicateContact",
+      "rescheduleBoundary",
+      "cancellationBoundary",
+      "medicationDoseStatus",
+      "clinicalHistoryComplete",
+      "audioIntelligibility",
+      "communicationEnergy",
+      "unsupportedMedicalCertainty",
+      "speakerRoleResolved",
+      "lowConfidence"
+    ],
+    "operational_controls": [
+      "PH-OPS-01",
+      "PH-OPS-02",
+      "PH-OPS-03",
+      "PH-OPS-04",
+      "PH-OPS-05",
+      "PH-OPS-06",
+      "PH-OPS-07",
+      "PH-OPS-08",
+      "PH-OPS-09"
+    ]
+  },
+  "case_pipeline": [
+    "file selected",
+    "sha256 duplicate guard",
+    "audio decode",
+    "ASR local",
+    "transcript integrity",
+    "domain QC engine",
+    "encrypted persistence",
+    "review queue",
+    "human evidence",
+    "final score/status",
+    "individual profile",
+    "management reports",
+    "append-only audit"
+  ]
+}
