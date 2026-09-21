@@ -1,0 +1,52 @@
+name: KulePoshti CI Probe
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: kuleposhti-operational-web-v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install and validate source
+        run: |
+          npm install
+          npm run check
+          npm test
+          npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Create Persian WAV fixtures
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y espeak-ng
+          espeak-ng -v fa -s 125 -w /tmp/kp-sampler-fa.wav "سلام وقت بخیر من نمونه گیر روبرا هستم. برای نمونه گیری فردا ساعت هشت تا نه تماس گرفتم. لطفا آدرس و زمان را تایید کنید. برای آزمایش ناشتا باشید و آب ساده مجاز است. قبل از رسیدن دوباره تماس می گیرم. ممنون."
+          espeak-ng -v fa -s 125 -w /tmp/kp-physician-fa.wav "سلام وقت بخیر من پزشک دکترساینا هستم. لطفا نام و مشخصات خودتان را تایید کنید. علت مراجعه چیست و از چه زمانی شروع شده است. سابقه بیماری و داروهای مصرفی را بفرمایید. برای آزمایش لازم است ناشتا باشید و نتیجه را پیگیری کنید. ممنون."
+          test -s /tmp/kp-sampler-fa.wav
+          test -s /tmp/kp-physician-fa.wav
+      - name: Browser real-audio E2E
+        shell: bash
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 >/tmp/kp-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill $PREVIEW_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:4173/phoenix-dashboard/ >/dev/null && break
+            sleep 1
+          done
+          KP_ASR_SMOKE=1 \
+          KP_ASR_FIXTURE_SAMPLER=/tmp/kp-sampler-fa.wav \
+          KP_ASR_FIXTURE_PHYSICIAN=/tmp/kp-physician-fa.wav \
+          KP_SMOKE_URL=http://127.0.0.1:4173/phoenix-dashboard/ \
+          npm run smoke:browser
