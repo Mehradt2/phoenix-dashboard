@@ -3,12 +3,12 @@ const root=process.cwd(),pack=path.resolve(process.env.KP_MODEL_PACK_DIR||'offli
 function run(cmd,args,extra={}){const r=spawnSync(cmd,args,{cwd:root,stdio:'inherit',shell:process.platform==='win32',env:{...process.env,...extra}});if(r.status!==0)process.exit(r.status||1)}
 run(process.execPath,['scripts/verify-offline-model-pack.mjs',pack,profile]);
 run(process.platform==='win32'?'npm.cmd':'npm',['run','build'],{KP_BASE:'./'});
-const dst=path.join(root,'dist','models');fs.rmSync(dst,{recursive:true,force:true});fs.cpSync(pack,dst,{recursive:true});
 fs.writeFileSync(path.join(root,'dist','runtime-config.js'),`window.__KP_RUNTIME__={mode:"local",apiBase:"",release:"windows-offline",modelSource:"bundled",modelBase:"./models/"};\n`);
 const lock=path.join(pack,'model-pack.lock.json'),lockData=fs.existsSync(lock)?JSON.parse(fs.readFileSync(lock,'utf8')):null;
 fs.writeFileSync(path.join(root,'dist','OFFLINE_BUILD.txt'),[
  'runtime=windows-tauri',
  'model_source=bundled',
+ 'model_delivery=tauri-resource',
  'remote_models_allowed=false',
  'audio_cloud_transport=false',
  'paid_ai_api=false',
@@ -16,4 +16,4 @@ fs.writeFileSync(path.join(root,'dist','OFFLINE_BUILD.txt'),[
  'model_pack_version='+(lockData?.packVersion||'unlocked'),
  'model_pack_bytes='+(lockData?.bytes||'unknown')
 ].join('\n')+'\n');
-console.log(JSON.stringify({ok:true,profile,pack,dst,lock:Boolean(lockData)}));
+console.log(JSON.stringify({ok:true,profile,pack,modelDelivery:'tauri-resource',lock:Boolean(lockData)}));
