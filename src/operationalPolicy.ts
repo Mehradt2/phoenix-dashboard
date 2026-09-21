@@ -1,6 +1,6 @@
 import type{QcDomain}from'./domain';
 
-export const POLICY_RELEASE='qc-online-v1.1.0';
+export const POLICY_RELEASE='qc-online-v1.2.0';
 
 export type OperationalControl={
  id:string;
@@ -38,7 +38,14 @@ export const OPERATIONAL_POLICY:Record<QcDomain,{version:string;title:string;con
    {id:'SA-OPS-05',label:'کنسلی و علت',rule:'علت کنسلی و درصد کنسلی ماهانه باید در پرونده فردی قابل مشاهده و Drill-down باشد.',source:'external',severity:'warning',autoAvailable:false},
    {id:'SA-OPS-06',label:'تحویل ثبت‌نشده',rule:'تحویل ثبت‌نشده باید به‌صورت Exception مستقل گزارش شود.',source:'external',severity:'critical',autoAvailable:false},
    {id:'SA-OPS-07',label:'ظرفیت آزاد نشده',rule:'اگر درخواست روز بعد برگشت به فروش شده اما ثبت کنسلی بیش از ۲ ساعت طول کشیده، باید به‌عنوان خطای آزادسازی ظرفیت ثبت شود.',source:'external',severity:'warning',autoAvailable:false},
-   {id:'SA-OPS-08',label:'تماس هماهنگی عدم پاسخ',rule:'در عدم پاسخ، ۳ تلاش با فاصله ۲۰ دقیقه و Retry صبح طبق Override نسخه‌دار باید Evidence شود.',source:'workflow',severity:'critical',autoAvailable:false}
+   {id:'SA-OPS-08',label:'تماس هماهنگی عدم پاسخ',rule:'در عدم پاسخ، ۳ تلاش با فاصله ۲۰ دقیقه و Retry صبح طبق Override نسخه‌دار باید Evidence شود.',source:'workflow',severity:'critical',autoAvailable:false},
+   {id:'SA-OPS-09',label:'استفاده از Zoiper',rule:'طبق SLA کنترل‌شده، نرخ استفاده از خط تماس رسمی Zoiper باید حداقل ۹۸٪ باشد؛ این KPI فقط از Call Log معتبر محاسبه می‌شود.',source:'external',severity:'warning',autoAvailable:false},
+   {id:'SA-OPS-10',label:'نرخ کنسلی منتسب',rule:'طبق SLA کنترل‌شده، نرخ کنسلی منتسب به نمونه‌گیر حداکثر ۲٪ است؛ بدون داده مأموریت/کنسلی Auto-score ممنوع است.',source:'external',severity:'critical',autoAvailable:false},
+   {id:'SA-OPS-11',label:'نرخ خطای عمومی',rule:'طبق SLA کنترل‌شده، نرخ خطای عمومی نمونه‌گیر حداکثر ۲٪ است.',source:'external',severity:'critical',autoAvailable:false},
+   {id:'SA-OPS-12',label:'خطای Critical',rule:'طبق SLA کنترل‌شده، نرخ خطای Critical باید صفر باشد و هر رخداد Critical وارد Gate واکنش فوری شود.',source:'external',severity:'critical',autoAvailable:false},
+   {id:'SA-OPS-13',label:'شنود تماس‌های کنسلی',rule:'تمام تماس‌های مرتبط با کنسلی باید ۱۰۰٪ شنود و ارزیابی شوند؛ در کمبود داده، نمونه تصادفی تماس انجام‌شده برای تکمیل ارزیابی استفاده می‌شود.',source:'workflow',severity:'critical',autoAvailable:false},
+   {id:'SA-OPS-14',label:'بسته‌بندی و تحویل نمونه',rule:'بسته‌بندی، برچسب‌گذاری، دمای حمل/شرایط ویژه و ثبت زمان تحویل باید از داده عملیاتی/آزمایشگاه Evidence شود.',source:'external',severity:'critical',autoAvailable:false},
+   {id:'SA-OPS-15',label:'واکنش رخداد Critical',rule:'گزارش اولیه رخداد Critical باید کمتر از یک ساعت کاری ثبت و جلسه مشترک حداکثر ظرف ۴ ساعت کاری برگزار شود.',source:'external',severity:'critical',autoAvailable:false}
   ]
  }
 };
