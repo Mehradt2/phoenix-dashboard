@@ -1,0 +1,90 @@
+name: KulePoshti Strict Offline AI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".ci/offline-ai-trigger.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-browser-ai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      KP_MODEL_PACK_PROFILE: portable
+      KP_MODEL_PACK_DIR: offline-models
+    steps:
+      - name: Checkout operational source
+        uses: actions/checkout@v4
+        with:
+          ref: kuleposhti-operational-web-v1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install and validate source
+        run: |
+          npm install
+          npm run check
+          npm test
+          python -m pip install "huggingface_hub>=0.34,<1"
+
+      - name: Build and verify portable Model Pack
+        run: |
+          python scripts/build_offline_model_pack.py --profile portable --output offline-models
+          node scripts/verify-offline-model-pack.mjs offline-models portable
+
+      - name: Build strict offline web runtime
+        run: |
+          KP_BASE=/ npm run build
+          rm -rf dist/models
+          cp -a offline-models dist/models
+          cat > dist/runtime-config.js <<'EOF'
+          window.__KP_RUNTIME__={mode:"local",apiBase:"",release:"offline-ai-probe",modelSource:"bundled",modelBase:"/models/",modelProfile:"portable"};
+          EOF
+          test -s dist/models/model-pack.lock.json
+
+      - name: Install browser and Persian audio fixture
+        run: |
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y espeak-ng
+          espeak-ng -v fa -s 125 -w /tmp/kp-sampler-fa.wav "سلام وقت بخیر من نمونه گیر روبرا هستم. برای نمونه گیری فردا ساعت هشت تا نه تماس گرفتم. لطفا آدرس و زمان را تایید کنید. برای آزمایش ناشتا باشید و آب ساده مجاز است. قبل از رسیدن دوباره تماس می گیرم. ممنون."
+          espeak-ng -v fa -s 125 -w /tmp/kp-physician-fa.wav "سلام وقت بخیر من پزشک دکترساینا هستم. لطفا نام و مشخصات خودتان را تایید کنید. علت مراجعه چیست و سابقه بیماری و داروهای مصرفی را بفرمایید. ممنون."
+
+      - name: Network-blocked ASR and Local Copilot E2E
+        shell: bash
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 >/tmp/kp-offline-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill $PREVIEW_PID 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          KP_OFFLINE_STRICT=1 \
+          KP_ASR_SMOKE=1 \
+          KP_LOCAL_AI_SMOKE=1 \
+          KP_ASR_FIXTURE_SAMPLER=/tmp/kp-sampler-fa.wav \
+          KP_ASR_FIXTURE_PHYSICIAN=/tmp/kp-physician-fa.wav \
+          KP_SMOKE_URL=http://127.0.0.1:4173/ \
+          npm run smoke:browser
+
+      - name: Upload model lock evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-ai-evidence-${{ github.run_number }}
+          path: |
+            offline-models/model-pack.lock.json
+          if-no-files-found: warn
+          retention-days: 90
