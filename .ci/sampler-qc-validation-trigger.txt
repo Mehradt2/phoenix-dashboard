@@ -3,3 +3,4 @@ Trigger Team Docker sampler migration validation.
 Trigger immutable source backup artifact validation.
 Retry source artifact upload with workspace-safe path.
 Diagnose browser Whisper model warm failure on current source.
+Capture browser model network diagnostics.
