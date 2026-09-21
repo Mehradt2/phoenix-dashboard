@@ -42,7 +42,7 @@ export async function localAiStatus(){
 export async function warmLocalAi(onProgress?:(s:string)=>void){
  if(!pipePromise){
   pipePromise=(async()=>{
-   const mod=await import('@huggingface/transformers'),runtime=configureTransformersRuntime(mod),h=await probeHardware();
+   const mod=await import('@huggingface/transformers'),runtime=await configureTransformersRuntime(mod),h=await probeHardware();
    const device:'webgpu'|'wasm'=h.webgpu?'webgpu':'wasm',dtype=runtime.offlineStrict?'q4':(h.webgpu&&h.webgpuF16?'q4f16':'q4');
    onProgress?.(runtime.offlineStrict?'در حال بارگذاری Copilot از Model Pack آفلاین…':'در حال آماده‌سازی Copilot محلی و Cache مدل…');
    try{
