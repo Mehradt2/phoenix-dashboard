@@ -73,7 +73,7 @@ async function operationalUnlock(){
 
   await page.locator('.sidebar nav button').filter({hasText:'قواعد QC'}).click();
   await page.getByText('Rule Pack پزشکان').waitFor({state:'visible',timeout:5000});
-  await page.getByText('PVQ-040',{exact:false}).waitFor({state:'visible',timeout:5000});
+  await page.getByText('PVQ-040',{exact:false}).first().waitFor({state:'visible',timeout:5000});
   await page.locator('.sidebar nav button').filter({hasText:'گزارش‌ها'}).click();
   await page.getByText('گزارش مدیریتی پزشکان').waitFor({state:'visible',timeout:5000});
   await page.getByText('پزشک تست E2E',{exact:true}).waitFor({state:'visible',timeout:5000});
