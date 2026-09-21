@@ -53,7 +53,7 @@ async function manualCase(page,{domain,person,fileName,transcript,date}){
  if(domain==='sampler'&&date)await page.getByLabel('تاریخ مکالمه فایل').first().fill(date);
  page.once('dialog',async d=>d.accept(transcript));
  await page.getByRole('button',{name:'Transcript دستی'}).click();
- await page.getByText('صف Review').waitFor({state:'visible',timeout:8000});
+ await page.getByRole('heading',{name:'صف Review'}).waitFor({state:'visible',timeout:8000});
  await page.getByText(person,{exact:true}).first().waitFor({state:'visible',timeout:8000});
 }
 async function realAsrCase(page,{domain,person,filePath,date,testCopilot=false}){
@@ -65,7 +65,7 @@ async function realAsrCase(page,{domain,person,filePath,date,testCopilot=false})
  await page.locator('input[type=file][accept="audio/*"]').first().setInputFiles(filePath);
  if(domain==='sampler'&&date)await page.getByLabel('تاریخ مکالمه فایل').first().fill(date);
  await page.getByRole('button',{name:/شروع پردازش Batch/}).click();
- await page.getByText('صف Review').waitFor({state:'visible',timeout:420000});
+ await page.getByRole('heading',{name:'صف Review'}).waitFor({state:'visible',timeout:420000});
  const row=page.locator('tbody tr').filter({hasText:person}).first();
  await row.waitFor({state:'visible',timeout:10000});
  await row.getByRole('button',{name:/بررسی/}).click();
