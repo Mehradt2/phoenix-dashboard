@@ -7,7 +7,10 @@
     "build": "tsc -b && vite build",
     "check": "node scripts/check.mjs",
     "smoke:browser": "node scripts/browser-smoke-v2.mjs",
-    "test": "vitest run src"
+    "test": "vitest run src",
+    "models:verify": "node scripts/verify-offline-model-pack.mjs",
+    "desktop:assets": "node scripts/build-desktop.mjs",
+    "desktop:build": "tauri build"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
@@ -22,6 +25,7 @@
     "@types/react-dom": "^19.1.9",
     "typescript": "^5.9.2",
     "playwright": "^1.55.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "@tauri-apps/cli": "2.11.4"
   }
 }
