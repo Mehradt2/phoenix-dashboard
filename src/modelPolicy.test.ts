@@ -22,4 +22,14 @@ describe('ASR hardware guard',()=>{
   expect(p.dtype).toEqual({encoder_model:'fp16',decoder_model_merged:'q4'});
   expect(p.id).toBe('onnx-community/whisper-large-v3-turbo');
  });
+ it('keeps portable offline pack on Tiny even when WebGPU exists',()=>{
+  const p=choosePlan('auto',base,'portable');
+  expect(p.id).toBe('onnx-community/whisper-tiny');
+  expect(p.device).toBe('webgpu');
+ });
+ it('keeps standard offline quality request on Small because Turbo is not bundled',()=>{
+  const p=choosePlan('quality',{...base,webgpuF16:true,hardwareConcurrency:12,deviceMemoryGb:12},'standard');
+  expect(p.id).toBe('onnx-community/whisper-small');
+  expect(p.validation).toBe('standard');
+ });
 });
