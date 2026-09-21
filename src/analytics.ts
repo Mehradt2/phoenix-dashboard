@@ -12,7 +12,7 @@ export function pareto(cases:CaseRecord[],domain:QcDomain){
 }
 export function weeklyTrend(cases:CaseRecord[],domain:QcDomain,weeks=8){
  const xs=filtered(cases,domain),now=new Date(),rows=[] as {label:string,avg:number,count:number}[];
- for(let i=weeks-1;i>=0;i--){const end=new Date(now);end.setDate(now.getDate()-i*7);const start=new Date(end);start.setDate(end.getDate()-6);start.setHours(0,0,0,0);end.setHours(23,59,59,999);const bucket=xs.filter(x=>{const d=new Date(x.createdAt);return d>=start&&d<=end});const vals=bucket.map(x=>Number(x.qc?.finalScore??x.qc?.conversationScore)).filter(Number.isFinite);rows.push({label:new Intl.DateTimeFormat('fa-IR',{month:'short',day:'numeric'}).format(end),avg:vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10:0,count:bucket.length})}
+ for(let i=weeks-1;i>=0;i--){const end=new Date(now);end.setDate(now.getDate()-i*7);const start=new Date(end);start.setDate(end.getDate()-6);start.setHours(0,0,0,0);end.setHours(23,59,59,999);const bucket=xs.filter(x=>{const d=new Date(x.occurredAt?x.occurredAt+'T12:00:00':x.createdAt);return d>=start&&d<=end});const vals=bucket.map(x=>Number(x.qc?.finalScore??x.qc?.conversationScore)).filter(Number.isFinite);rows.push({label:new Intl.DateTimeFormat('fa-IR',{month:'short',day:'numeric'}).format(end),avg:vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*10)/10:0,count:bucket.length})}
  return rows
 }
 export function people(cases:CaseRecord[],domain:QcDomain){
