@@ -2,6 +2,7 @@ export type ModelMode='auto'|'standard'|'quality';
 export type HardwareProfile={webgpu:boolean;deviceMemoryGb:number|null;hardwareConcurrency:number;storageQuotaMb:number|null;storageUsageMb:number|null;browser:string};
 export type ModelPlan={mode:ModelMode;id:string;label:string;device:'webgpu'|'wasm';dtype:any;reason:string;fallbackId:string|null;authRequired:false;subscriptionRequired:false;runtime:'browser-local';validation:'standard'|'candidate';licenseNotice:string};
 export const CATALOG={
+  compatibility:{id:'onnx-community/whisper-tiny',label:'Whisper Tiny · بازیابی سریع',validation:'standard' as const},
   standard:{id:'onnx-community/whisper-small',label:'Whisper Small · استاندارد',validation:'standard' as const},
   quality:{id:'onnx-community/whisper-large-v3-turbo',label:'Whisper Large v3 Turbo · کاندید کیفیت',validation:'candidate' as const}
 } as const;
@@ -12,8 +13,9 @@ function turboSafe(h:HardwareProfile){const mem=h.deviceMemoryGb==null?h.hardwar
 const common={authRequired:false as const,subscriptionRequired:false as const,runtime:'browser-local' as const,licenseNotice:'Public model weights; no API token or paid inference subscription is required. Verify model/license metadata during release pin.'};
 export function choosePlan(mode:ModelMode,h:HardwareProfile):ModelPlan{
   if(mode==='quality'&&turboSafe(h))return{mode,id:CATALOG.quality.id,label:CATALOG.quality.label,device:'webgpu',dtype:'fp16',reason:'High Quality فقط به درخواست کاربر و پس از Hardware Guard فعال شد؛ نتیجه هنوز Candidate است تا Gold فارسی PASS شود.',fallbackId:CATALOG.standard.id,validation:'candidate',...common};
-  const reason=mode==='quality'?'Hardware Guard مدل Turbo را رد کرد؛ برای پایداری Small انتخاب شد.':mode==='auto'?'Auto عمداً Small را انتخاب می‌کند تا Batchهای ۵–۶ دقیقه‌ای و تا ۱۰۰ فایل پایدار بمانند؛ Turbo فقط Manual High Quality است.':'Standard انتخاب شد.';
-  return{mode,id:CATALOG.standard.id,label:CATALOG.standard.label,device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',reason,fallbackId:null,validation:'standard',...common}
+  if(mode==='auto'&&!h.webgpu){return{mode,id:CATALOG.compatibility.id,label:CATALOG.compatibility.label,device:'wasm',dtype:'q8',reason:'Auto روی دستگاه بدون WebGPU مدل Tiny را برای شروع سریع و جلوگیری از گیرکردن Browser انتخاب می‌کند؛ نتیجه نیازمند Human Review است.',fallbackId:null,validation:'standard',...common}}
+  const reason=mode==='quality'?'Hardware Guard مدل Turbo را رد کرد؛ برای پایداری Small انتخاب شد.':mode==='auto'?'Auto روی WebGPU مدل Small را انتخاب می‌کند؛ در خطای مدل، Tiny بازیابی سریع است.':'Standard انتخاب شد.';
+  return{mode,id:CATALOG.standard.id,label:CATALOG.standard.label,device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',reason,fallbackId:CATALOG.compatibility.id,validation:'standard',...common}
 }
 export function getMode():ModelMode{try{const x=globalThis.localStorage?.getItem('kp-model-mode');return x==='quality'||x==='standard'||x==='auto'?x:'auto'}catch{return'auto'}}
 export function setMode(x:ModelMode){try{globalThis.localStorage?.setItem('kp-model-mode',x)}catch{}}
