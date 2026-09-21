@@ -17,8 +17,9 @@ import{samplerByName,persianDateLabel,persianDayLabel,persianMonthLabel,persianM
 import'./styles.css';
 
 const fa=new Intl.NumberFormat('fa-IR',{maximumFractionDigits:1});
-const isoToday=()=>new Date().toISOString().slice(0,10);
-const caseDate=(x:CaseRecord)=>String(x.occurredAt||x.createdAt||'').slice(0,10);
+const localIsoDate=(value:Date|string=new Date())=>{const d=value instanceof Date?value:new Date(value);if(Number.isNaN(d.getTime()))return'';const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`};
+const isoToday=()=>localIsoDate();
+const caseDate=(x:CaseRecord)=>x.occurredAt?String(x.occurredAt).slice(0,10):localIsoDate(x.createdAt);
 function mergeSamplerProfiles(base:any[],directory:SamplerProfile[]){
  const m=new Map(base.map(x=>[x.name,x]));
  return directory.filter(x=>x.active).map(s=>({...{name:s.name,calls:0,avg:null,pending:0,critical:0,last:''},...(m.get(s.name)||{}),samplerId:s.id,grade:s.grade,city:s.city,source:s.source}));
