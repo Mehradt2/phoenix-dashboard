@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "KulePoshti QC",
+  "version": "1.3.0",
+  "identifier": "ir.robra.kuleposhti.qc",
+  "build": {
+    "beforeBuildCommand": "node scripts/build-desktop.mjs",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "کوله‌پشتی · QC Operations OS",
+        "width": 1440,
+        "height": 940,
+        "minWidth": 1100,
+        "minHeight": 720,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "shortDescription": "Offline Persian QC with local Whisper and local AI Copilot",
+    "longDescription": "KulePoshti QC Operations OS for offline Persian physician and sampler conversation quality control."
+  }
+}
