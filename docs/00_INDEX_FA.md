@@ -63,3 +63,5 @@
 - `QC_RULES_AND_CASE_MODEL_FA.md` — Rule Pack پزشک/نمونه‌گیر، شروط Review و مدل پرونده افراد.
 - `FLOW_ACCEPTANCE_TEST_FA.md` — Gate اجباری Upload→QC→Review→Profile→Report.
 - `knowledge/QC_RULE_CATALOG_v1.2.0.json` — Catalog ماشین‌خوان Ruleها و شروط.
+
+- `OFFLINE_AI_RUNTIME_FA.md` — معماری Model Pack، Local Copilot، Docker Offline و Windows/Tauri.
