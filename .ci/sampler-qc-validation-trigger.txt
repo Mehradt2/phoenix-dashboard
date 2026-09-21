@@ -5,3 +5,4 @@ Retry source artifact upload with workspace-safe path.
 Diagnose browser Whisper model warm failure on current source.
 Capture browser model network diagnostics.
 Validate shader-f16 guard and WASM q8 fallback.
+Validate release head 46189cf17e15fcbd979c684cccb24b1f7bb66418 after check alignment.
