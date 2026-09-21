@@ -1,6 +1,6 @@
 # مدل داده PostgreSQL — Team Runtime
 
-Migration مرجع: `server/migrations/001_init.sql`
+Migrationهای مرجع: `server/migrations/001_init.sql` و `002_sampler_registry_case_date.sql`
 
 ## users
 هویت کاربران تیم:
@@ -28,9 +28,22 @@ Sessionهای Server-side:
 - qc_json
 - status
 - created_by / updated_by
+- occurred_at — تاریخ واقعی مکالمه
+- person_meta — snapshot گرید/شهر نمونه‌گیر در زمان ثبت
 - soft delete: deleted_at
 
 Raw Audio در DB وجود ندارد.
+
+## samplers
+Master List مشترک نمونه‌گیران:
+- full_name unique
+- grade
+- city
+- active
+- source: seed/manual
+- created_at / updated_at
+
+Seed اولیه شامل ۳۰ نمونه‌گیر فعال تهران است و افزودن دستی از API/UI قابل انجام است.
 
 ## reviews
 تصمیم انسانی:
