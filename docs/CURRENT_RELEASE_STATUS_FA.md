@@ -14,7 +14,7 @@
 ## اصلاحات Release جاری
 این Release برای برطرف‌کردن Gapهای مشاهده‌شده در فلو واقعی QC ایجاد شده است:
 - Pipeline پردازش دیگر Success جعلی نشان نمی‌دهد؛ فقط پرونده واقعاً ذخیره‌شده وارد Review می‌شود.
-- بارگذاری Whisper Fail-closed است: Auto روی WebGPU از Small و بدون WebGPU از Tiny استفاده می‌کند؛ Timeout مدل ۱۵۰ ثانیه و Fallback نهایی Tiny است.nscript دستی و Retry دارد.
+- بارگذاری Whisper Fail-closed است: Auto روی WebGPU از Small و بدون WebGPU از Tiny استفاده می‌کند؛ Timeout مدل ۱۵۰ ثانیه و Fallback نهایی Tiny است. Transcript دستی و Retry نیز به‌عنوان مسیر بازیابی وجود دارد.
 - پس از ساخت موفق پرونده، کاربر مستقیم به صف Review منتقل می‌شود.
 - صف Review فقط پرونده‌های باز را نشان می‌دهد.
 - Rule Pack نمونه‌گیران: `sampler-conversation-qc-1.1.0`.
@@ -65,11 +65,18 @@
 
 ## Production Gates
 - Browser build/test/smoke: باید در GitHub Actions PASS شود.
+- Real Audio ASR Gate: دو WAV فارسی واقعیِ قابل Decode (نمونه‌گیر و پزشک) باید بدون Transcript دستی از Whisper → Persist → QC → Review Evidence → Profile عبور کنند.
+- همین Real Audio Gate باید یک‌بار روی Preview محلی CI و بار دوم روی URL عمومی GitHub Pages PASS شود.
+- فایل `VERIFIED.txt` فقط بعد از PASS شدن تست عمومی ساخته می‌شود؛ نبودن آن یا ناهماهنگی SHA یعنی Release نهایی تأیید نشده است.
 - Team Docker validate/integration/publish: باید PASS شود.
-- Public domain: فقط پس از Release SHA verification.
+- Public domain: فقط پس از تطابق `RELEASE.txt` و `VERIFIED.txt` با SHA جاری معتبر است.
 - Windows Offline: Evidence track مستقل و هنوز نیازمند Production Gate اختصاصی است.
 
 هیچ Release بدون Source، Docker، Docs، Tests و Recovery Artifact هم‌زمان «Done» محسوب نمی‌شود.
 
 ## E2E واقعی Case Pipeline
-Release جدید علاوه بر Shell، یک Case نمونه‌گیر و یک Case پزشک را از File/Transcript تا Persist، Review Evidence و Profile اجرا می‌کند. پیام Success بدون Case ذخیره‌شده دیگر Gate را Pass نمی‌کند.
+Gate جاری دو مسیر مستقل را تست می‌کند:
+1. مسیر بازیابی Manual Transcript برای نمونه‌گیر و پزشک تا Persist، Review Evidence و Profile.
+2. مسیر واقعی صوت برای نمونه‌گیر و پزشک با WAV فارسی تولیدشده در CI: Audio Decode → Whisper محلی → Transcript → Persist → QC Rule Evidence → Review → Profile.
+
+در تست واقعی صوت هیچ دکمه Transcript دستی استفاده نمی‌شود. اگر Whisper مدل را بارگیری نکند، Transcript کمتر از حداقل باشد، Case ذخیره نشود، Evidence ساخته نشود یا Profile تشکیل نشود، Release Fail می‌شود. همین Gate بعد از انتشار روی URL عمومی نیز تکرار می‌شود.
