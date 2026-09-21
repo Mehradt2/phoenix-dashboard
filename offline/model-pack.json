@@ -1,0 +1,65 @@
+{
+  "packVersion": "1.0.0",
+  "runtime": "@huggingface/transformers@3.8.1",
+  "layout": "models/<repo-id>/...",
+  "profiles": {
+    "portable": {
+      "description": "پروفایل پایه آفلاین برای لپ‌تاپ‌های عملیاتی: Whisper Tiny + Qwen 0.5B q4.",
+      "models": [
+        {
+          "id": "onnx-community/whisper-tiny",
+          "role": "asr",
+          "requiredFiles": [
+            "config.json",
+            "generation_config.json",
+            "preprocessor_config.json",
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "onnx/encoder_model.onnx",
+            "onnx/decoder_model_merged_q4.onnx",
+            "onnx/encoder_model_quantized.onnx",
+            "onnx/decoder_model_merged_quantized.onnx"
+          ]
+        },
+        {
+          "id": "onnx-community/Qwen2.5-0.5B-Instruct",
+          "role": "copilot",
+          "requiredFiles": [
+            "config.json",
+            "generation_config.json",
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "onnx/model_q4.onnx"
+          ]
+        }
+      ]
+    },
+    "standard": {
+      "description": "پروفایل کیفیت بالاتر: portable + Whisper Small.",
+      "extends": "portable",
+      "models": [
+        {
+          "id": "onnx-community/whisper-small",
+          "role": "asr-standard",
+          "requiredFiles": [
+            "config.json",
+            "generation_config.json",
+            "preprocessor_config.json",
+            "tokenizer.json",
+            "tokenizer_config.json",
+            "onnx/encoder_model.onnx",
+            "onnx/decoder_model_merged_q4.onnx",
+            "onnx/encoder_model_quantized.onnx",
+            "onnx/decoder_model_merged_quantized.onnx"
+          ]
+        }
+      ]
+    }
+  },
+  "policy": {
+    "audioCloudTransport": false,
+    "paidInferenceApi": false,
+    "bundledModeRemoteModelsAllowed": false,
+    "copilotCanChangeQcScore": false
+  }
+}
