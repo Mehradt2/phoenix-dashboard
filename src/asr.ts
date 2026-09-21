@@ -3,8 +3,8 @@ import{choosePlan,getMode,probeHardware,setMode,type HardwareProfile,type ModelM
 type Progress=(p:{status:string;progress?:number;file?:string;model?:string;detail?:string})=>void;
 type Loaded={pipe:any,plan:ModelPlan,hardware:HardwareProfile,fallbackReason?:string};
 const cache=new Map<string,Promise<Loaded>>();
-const MODEL_LOAD_TIMEOUT_MS=240_000;
-const BASE_FALLBACK_ID='onnx-community/whisper-base';
+const MODEL_LOAD_TIMEOUT_MS=150_000;
+const BASE_FALLBACK_ID='onnx-community/whisper-tiny';
 
 function withTimeout<T>(promise:Promise<T>,ms:number,code:string):Promise<T>{
  return new Promise((resolve,reject)=>{
@@ -13,8 +13,8 @@ function withTimeout<T>(promise:Promise<T>,ms:number,code:string):Promise<T>{
  });
 }
 
-function fallbackPlan(h:HardwareProfile,label='Whisper Base · Safe fallback'):ModelPlan{
- return{mode:'standard',id:BASE_FALLBACK_ID,label,device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',reason:'Fallback کوچک‌تر برای بازیابی پردازش مرورگر.',fallbackId:null,authRequired:false,subscriptionRequired:false,runtime:'browser-local',validation:'standard',licenseNotice:'Public model weights; no paid API required.'};
+function fallbackPlan(h:HardwareProfile,label='Whisper Tiny · Safe fallback'):ModelPlan{
+ return{mode:'standard',id:BASE_FALLBACK_ID,label,device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',reason:'Fallback سبک برای بازیابی سریع پردازش مرورگر؛ خروجی همچنان نیازمند Human Review است.',fallbackId:null,authRequired:false,subscriptionRequired:false,runtime:'browser-local',validation:'standard',licenseNotice:'Public model weights; no paid API required.'};
 }
 
 async function createOne(plan:ModelPlan,h:HardwareProfile,progress:Progress):Promise<Loaded>{
