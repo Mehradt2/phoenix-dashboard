@@ -1,0 +1,76 @@
+name: KulePoshti Windows Offline
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".ci/windows-offline-trigger.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-offline:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    env:
+      KP_MODEL_PACK_PROFILE: portable
+      KP_MODEL_PACK_DIR: offline-models
+    steps:
+      - name: Checkout operational source
+        uses: actions/checkout@v4
+        with:
+          ref: kuleposhti-operational-web-v1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Prepare Rust
+        shell: pwsh
+        run: |
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Install application dependencies
+        shell: pwsh
+        run: |
+          npm install
+          python -m pip install "huggingface_hub>=0.34,<1"
+          npm run check
+          npm test
+
+      - name: Build portable offline model pack
+        shell: pwsh
+        run: |
+          python scripts/build_offline_model_pack.py --profile portable --output offline-models
+          node scripts/verify-offline-model-pack.mjs offline-models portable
+          if (-not (Test-Path "offline-models/model-pack.lock.json")) { throw "MODEL_PACK_LOCK_MISSING" }
+
+      - name: Build NSIS offline application
+        shell: pwsh
+        run: |
+          npm run desktop:build
+          if (-not (Test-Path "dist/OFFLINE_BUILD.txt")) { throw "OFFLINE_BUILD_MANIFEST_MISSING" }
+          $installer = Get-ChildItem "src-tauri/target/release/bundle/nsis/*.exe" | Select-Object -First 1
+          if (-not $installer) { throw "NSIS_INSTALLER_MISSING" }
+          if ($installer.Length -lt 1000000) { throw "NSIS_INSTALLER_TOO_SMALL" }
+          Write-Host "Installer:" $installer.FullName "bytes=" $installer.Length
+          Get-Content "dist/OFFLINE_BUILD.txt"
+
+      - name: Upload Windows offline release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: kuleposhti-windows-offline-${{ github.run_number }}
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            offline-models/model-pack.lock.json
+            dist/OFFLINE_BUILD.txt
+          if-no-files-found: error
+          retention-days: 90
