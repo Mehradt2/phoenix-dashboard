@@ -61,3 +61,6 @@ Release نمونه‌گیر فقط وقتی قابل تأیید است که:
 6. WAV واقعی از Decode → Whisper → Transcript → QC → Review Evidence → Profile عبور کند.
 7. گزارش نام/تاریخ/روز/ماه و CSV فیلترشده تولید شود.
 8. Team DB migration و API سامپلرها PASS شود.
+
+## CI Probe
+Validation روی Pull Request draft اجرا می‌شود تا Log و Stepهای Build/Test/Whisper قبل از Release قابل مشاهده باشند.
