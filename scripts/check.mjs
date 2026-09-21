@@ -10,7 +10,7 @@ const c={
  appendOnlyAudit:/AUDIT='audit'/.test(v)&&/review_submitted/.test(v),
  models:/whisper-tiny/.test(m)&&/whisper-small/.test(m)&&/whisper-large-v3-turbo/.test(m),
  noToken:/authRequired:false/.test(m)&&/subscriptionRequired:false/.test(m),
- autoStable:/Auto روی WebGPU مدل Small/.test(m)&&/بدون WebGPU مدل Tiny/.test(m)&&/whisper-tiny/.test(a),
+ autoStable:/shader-f16/.test(m)&&/مدل Tiny q8/.test(m)&&/whisper-tiny/.test(a)&&/webgpuF16/.test(a),
  batch:/slice\(0,100\)/.test(ui),
  samplerQC:/sampler-conversation-qc-1\.1\.0/.test(q)&&/criticalFailures/.test(q)&&/scoreWorkflow/.test(q),
  physicianQC:/physician-qc-2\.0\.0/.test(p)&&/PVQ-026/.test(p)&&/PVQ-040/.test(p)&&/DOC-009/.test(p)&&/ParticipantState/.test(p)&&/scorePhysicianWorkflow/.test(p),
