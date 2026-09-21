@@ -1,4 +1,4 @@
-import*as vault from'./vault';import{apiUrl,isTeamMode,type TeamUser}from'./runtime';import type{CaseRecord,Review,AuditEvent}from'./vault';
+import*as vault from'./vault';import{apiUrl,isTeamMode,type TeamUser}from'./runtime';import type{CaseRecord,Review,AuditEvent}from'./vault';import{localCreateSampler,localListSamplers,type SamplerProfile}from'./samplerRegistry';
 
 async function api(path:string,init:RequestInit={}){
  const headers=new Headers(init.headers);if(init.body&&!headers.has('content-type'))headers.set('content-type','application/json');
@@ -30,3 +30,6 @@ export async function importBackup(b:any){if(!isTeamMode())return vault.importBa
 export async function listUsers():Promise<TeamUser[]>{if(!isTeamMode())return[];return(await api('/api/users')).users}
 export async function createUser(input:{email:string;displayName:string;role:TeamUser['role'];password:string}):Promise<TeamUser>{if(!isTeamMode())throw new Error('team_mode_required');return(await api('/api/users',{method:'POST',body:JSON.stringify(input)})).user}
 export async function updateUser(id:string,input:{active:boolean;role?:TeamUser['role']}):Promise<void>{if(!isTeamMode())throw new Error('team_mode_required');await api('/api/users/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(input)})}
+
+export async function listSamplers():Promise<SamplerProfile[]>{if(!isTeamMode())return localListSamplers();return(await api('/api/samplers')).samplers}
+export async function createSampler(input:{name:string;grade:string;city:string}):Promise<SamplerProfile>{if(!isTeamMode())return localCreateSampler(input);return(await api('/api/samplers',{method:'POST',body:JSON.stringify(input)})).sampler}
