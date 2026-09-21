@@ -2,3 +2,4 @@ Validate kuleposhti-operational-web-v1 sampler QC release on 2026-09-21.
 Trigger Team Docker sampler migration validation.
 Trigger immutable source backup artifact validation.
 Retry source artifact upload with workspace-safe path.
+Diagnose browser Whisper model warm failure on current source.
