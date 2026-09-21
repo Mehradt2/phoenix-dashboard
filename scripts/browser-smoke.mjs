@@ -31,13 +31,13 @@ async function manualCase(page,{domain,person,fileName,bytes,transcript,ruleId})
   page.once('dialog',async d=>{await d.accept(transcript)});
   await page.getByRole('button',{name:'Transcript دستی'}).click();
   await page.getByText('صف Review').waitFor({state:'visible',timeout:8000});
-  await page.getByText(person,{exact:true}).waitFor({state:'visible',timeout:8000});
+  await page.getByText(person,{exact:true}).first().waitFor({state:'visible',timeout:8000});
   const row=page.locator('tbody tr').filter({hasText:person}).first();
   await row.getByRole('button',{name:/بررسی/}).click();
   await page.getByText(ruleId,{exact:false}).first().waitFor({state:'visible',timeout:5000});
   await page.locator('.review-drawer .icon-only').click();
   await page.locator('.sidebar nav button').filter({hasText:domain==='sampler'?'نمونه‌گیران':'پزشکان'}).click();
-  await page.getByText(person,{exact:true}).waitFor({state:'visible',timeout:5000});
+  await page.getByText(person,{exact:true}).first().waitFor({state:'visible',timeout:5000});
 }
 
 async function operationalUnlock(){
@@ -76,7 +76,7 @@ async function operationalUnlock(){
   await page.getByText('PVQ-040',{exact:false}).first().waitFor({state:'visible',timeout:5000});
   await page.locator('.sidebar nav button').filter({hasText:'گزارش‌ها'}).click();
   await page.getByText('گزارش مدیریتی پزشکان').waitFor({state:'visible',timeout:5000});
-  await page.getByText('پزشک تست E2E',{exact:true}).waitFor({state:'visible',timeout:5000});
+  await page.getByText('پزشک تست E2E',{exact:true}).first().waitFor({state:'visible',timeout:5000});
 
   const body=(await page.locator('body').innerText()).trim();
   if(body.includes('Runtime Recovery'))throw new Error('unlock:runtime_recovery_visible');
