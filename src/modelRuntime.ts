@@ -1,4 +1,4 @@
-import{RUNTIME,type ModelSource}from'./runtime';
+import{RUNTIME,isTauriRuntime,type ModelSource}from'./runtime';
 
 export type ModelRuntimePolicy={
  source:ModelSource;
@@ -7,6 +7,7 @@ export type ModelRuntimePolicy={
  allowRemoteModels:boolean;
  useBrowserCache:boolean;
  offlineStrict:boolean;
+ desktopResource:boolean;
 };
 
 export function resolveModelRuntime(input:{modelSource?:ModelSource;modelBase?:string}=RUNTIME):ModelRuntimePolicy{
@@ -18,16 +19,25 @@ export function resolveModelRuntime(input:{modelSource?:ModelSource;modelBase?:s
   allowLocalModels:source==='bundled',
   allowRemoteModels:source!=='bundled',
   useBrowserCache:true,
-  offlineStrict:source==='bundled'
+  offlineStrict:source==='bundled',
+  desktopResource:false
  };
 }
 
-export function configureTransformersRuntime(mod:any){
- const p=resolveModelRuntime();
+async function resolveDesktopModelPath(policy:ModelRuntimePolicy):Promise<ModelRuntimePolicy>{
+ if(!policy.offlineStrict||!isTauriRuntime())return policy;
+ const core=await import('@tauri-apps/api/core');
+ const resourcePath=await core.invoke<string>('model_base_path');
+ const url=core.convertFileSrc(resourcePath);
+ return{...policy,localModelPath:url.endsWith('/')?url:url+'/',desktopResource:true};
+}
+
+export async function configureTransformersRuntime(mod:any){
+ const p=await resolveDesktopModelPath(resolveModelRuntime());
  const e=mod.env;
  e.useBrowserCache=p.useBrowserCache;
  (e as any).useWasmCache=true;
- (e as any).cacheKey='kp-model-runtime-v3';
+ (e as any).cacheKey='kp-model-runtime-v4';
  e.allowLocalModels=p.allowLocalModels;
  e.allowRemoteModels=p.allowRemoteModels;
  if(p.allowLocalModels)e.localModelPath=p.localModelPath;
