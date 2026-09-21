@@ -21,7 +21,7 @@ function fallbackPlan(h:HardwareProfile,label='Whisper Tiny · Safe fallback'):M
 async function createOne(plan:ModelPlan,h:HardwareProfile,progress:Progress):Promise<Loaded>{
  progress({status:'model-load-start',model:plan.label,progress:0});
  const mod=await import('@huggingface/transformers');
- const runtime=configureTransformersRuntime(mod),pipeline=mod.pipeline;
+ const runtime=await configureTransformersRuntime(mod),pipeline=mod.pipeline;
  progress({status:runtime.offlineStrict?'offline-pack-load':'model-source-ready',model:plan.label,detail:runtime.offlineStrict?runtime.localModelPath:'hub-cache'});
  let pipe:any;
  try{
