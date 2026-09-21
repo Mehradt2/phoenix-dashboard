@@ -1,4 +1,5 @@
 import{choosePlan,getMode,probeHardware,setMode,type HardwareProfile,type ModelMode,type ModelPlan}from'./modelPolicy';
+import{configureTransformersRuntime,resolveModelRuntime}from'./modelRuntime';
 
 type Progress=(p:{status:string;progress?:number;file?:string;model?:string;detail?:string})=>void;
 type Loaded={pipe:any,plan:ModelPlan,hardware:HardwareProfile,fallbackReason?:string};
@@ -20,14 +21,19 @@ function fallbackPlan(h:HardwareProfile,label='Whisper Tiny · Safe fallback'):M
 async function createOne(plan:ModelPlan,h:HardwareProfile,progress:Progress):Promise<Loaded>{
  progress({status:'model-load-start',model:plan.label,progress:0});
  const mod=await import('@huggingface/transformers');
- const pipeline=mod.pipeline,hfEnv=mod.env;
- hfEnv.allowLocalModels=false;hfEnv.allowRemoteModels=true;hfEnv.useBrowserCache=true;
- (hfEnv as any).useWasmCache=true;(hfEnv as any).cacheKey='kp-whisper-v2';
- const pipe=await withTimeout(
-  pipeline('automatic-speech-recognition',plan.id,{device:plan.device,dtype:plan.dtype,progress_callback:(x:any)=>progress({status:String(x.status||'model-loading'),progress:Number(x.progress||0),file:x.file,model:plan.label})}as any) as Promise<any>,
-  MODEL_LOAD_TIMEOUT_MS,
-  'MODEL_LOAD_TIMEOUT'
- );
+ const runtime=configureTransformersRuntime(mod),pipeline=mod.pipeline;
+ progress({status:runtime.offlineStrict?'offline-pack-load':'model-source-ready',model:plan.label,detail:runtime.offlineStrict?runtime.localModelPath:'hub-cache'});
+ let pipe:any;
+ try{
+  pipe=await withTimeout(
+   pipeline('automatic-speech-recognition',plan.id,{device:plan.device,dtype:plan.dtype,progress_callback:(x:any)=>progress({status:String(x.status||'model-loading'),progress:Number(x.progress||0),file:x.file,model:plan.label})}as any) as Promise<any>,
+   MODEL_LOAD_TIMEOUT_MS,
+   'MODEL_LOAD_TIMEOUT'
+  );
+ }catch(e){
+  const detail=e instanceof Error?e.message:String(e);
+  throw new Error((runtime.offlineStrict?'OFFLINE_ASR_MODEL_UNAVAILABLE: ':'ASR_MODEL_LOAD_FAILED: ')+detail);
+ }
  progress({status:'model-ready',model:plan.label,progress:100});
  return{pipe,plan,hardware:h};
 }
@@ -53,7 +59,7 @@ async function create(plan:ModelPlan,h:HardwareProfile,progress:Progress):Promis
 
 export async function modelStatus(mode:ModelMode=getMode()){
  const h=await probeHardware(),plan=choosePlan(mode,h);
- return{mode,hardware:h,plan,cacheEnabled:Boolean('caches'in globalThis),policy:'browser-asr-policy-1.1.0',timeouts:{modelLoadMs:MODEL_LOAD_TIMEOUT_MS},fallbackModel:BASE_FALLBACK_ID};
+ return{mode,hardware:h,plan,modelRuntime:resolveModelRuntime(),cacheEnabled:Boolean('caches'in globalThis),policy:'browser-asr-policy-1.2.0',timeouts:{modelLoadMs:MODEL_LOAD_TIMEOUT_MS},fallbackModel:BASE_FALLBACK_ID};
 }
 export function setModelMode(mode:ModelMode){setMode(mode);cache.clear()}
 export async function warmModel(mode:ModelMode,progress:Progress){
