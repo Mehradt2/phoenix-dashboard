@@ -6,3 +6,4 @@ Diagnose browser Whisper model warm failure on current source.
 Capture browser model network diagnostics.
 Validate shader-f16 guard and WASM q8 fallback.
 Validate release head 46189cf17e15fcbd979c684cccb24b1f7bb66418 after check alignment.
+Validate offline AI/Tauri head 89db73bc0025585eafed6bd33b931048225d53c3.
