@@ -7,7 +7,9 @@ async function openUnlocked(){
  const context=await browser.newContext({viewport:{width:1440,height:1000}});
  const page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push('pageerror:'+e.message));
- page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('KULEPOSHTI_RUNTIME_ERROR'))errors.push('console:'+m.text())});
+ page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('KULEPOSHTI_RUNTIME_ERROR'))errors.push('console:'+m.text());if(['error','warning'].includes(m.type()))console.log('BROWSER_'+m.type().toUpperCase()+':',m.text())});
+ page.on('requestfailed',r=>console.log('REQUEST_FAILED:',r.url(),r.failure()?.errorText||''));
+ page.on('response',r=>{if(r.status()>=400&&/huggingface|hf\.co|xethub/i.test(r.url()))console.log('MODEL_HTTP_ERROR:',r.status(),r.url())});
  const response=await page.goto(probeUrl('operational'),{waitUntil:'domcontentloaded',timeout:60000});
  if(!response?.ok())throw new Error('navigation_failed');
  const pass='Kp-Test-'+Date.now()+'-Only';
