@@ -40,6 +40,7 @@
 - `AI_LOCAL_POLICY_FA.md` — سیاست AI بدون هزینه.
 - `REPORTING_BENCHMARK_FA.md` — طراحی گزارش و Drill-down.
 - `WHISPER_BROWSER_POLICY_FA.md` — سیاست ASR مرورگر.
+- `SAMPLER_QC_OPERATIONS_FA.md` — Master List نمونه‌گیران، تاریخ مکالمه، Batch واقعی و گزارش روز/ماه.
 
 ## Source of Truth
 - Source branch: `kuleposhti-operational-web-v1`
