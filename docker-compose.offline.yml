@@ -1,0 +1,7 @@
+services:
+  web:
+    environment:
+      KP_MODEL_SOURCE: bundled
+      KP_MODEL_BASE: /models/
+    volumes:
+      - ./offline-models:/usr/share/nginx/html/models:ro
