@@ -1,5 +1,6 @@
 import{choosePlan,getMode,probeHardware,setMode,type HardwareProfile,type ModelMode,type ModelPlan}from'./modelPolicy';
 import{configureTransformersRuntime,resolveModelRuntime}from'./modelRuntime';
+import{RUNTIME}from'./runtime';
 
 type Progress=(p:{status:string;progress?:number;file?:string;model?:string;detail?:string})=>void;
 type Loaded={pipe:any,plan:ModelPlan,hardware:HardwareProfile,fallbackReason?:string};
@@ -58,12 +59,12 @@ async function create(plan:ModelPlan,h:HardwareProfile,progress:Progress):Promis
 }
 
 export async function modelStatus(mode:ModelMode=getMode()){
- const h=await probeHardware(),plan=choosePlan(mode,h);
+ const h=await probeHardware(),plan=choosePlan(mode,h,RUNTIME.modelProfile);
  return{mode,hardware:h,plan,modelRuntime:resolveModelRuntime(),cacheEnabled:Boolean('caches'in globalThis),policy:'browser-asr-policy-1.2.0',timeouts:{modelLoadMs:MODEL_LOAD_TIMEOUT_MS},fallbackModel:BASE_FALLBACK_ID};
 }
 export function setModelMode(mode:ModelMode){setMode(mode);cache.clear()}
 export async function warmModel(mode:ModelMode,progress:Progress){
- const h=await probeHardware(),p=choosePlan(mode,h),k=p.id+'|'+p.device+'|'+JSON.stringify(p.dtype);
+ const h=await probeHardware(),p=choosePlan(mode,h,RUNTIME.modelProfile),k=p.id+'|'+p.device+'|'+JSON.stringify(p.dtype);
  if(!cache.has(k))cache.set(k,create(p,h,progress).catch(e=>{cache.delete(k);throw e}));
  return cache.get(k)!;
 }
