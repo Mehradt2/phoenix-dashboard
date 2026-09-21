@@ -68,7 +68,7 @@ jobs:
             if curl -fsS http://127.0.0.1:4173/phoenix-dashboard/ >/dev/null; then break; fi
             sleep 1
           done
-          KP_SMOKE_URL=http://127.0.0.1:4173/phoenix-dashboard/ npm run smoke:browser
+          KP_ASR_SMOKE=1 KP_SMOKE_URL=http://127.0.0.1:4173/phoenix-dashboard/ npm run smoke:browser
 
       - name: Checkout Pages branch
         uses: actions/checkout@v4

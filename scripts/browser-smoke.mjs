@@ -52,6 +52,14 @@ async function operationalUnlock(){
   if(await create.count())await create.click();else await page.getByRole('button',{name:/ورود به کوله‌پشتی/}).click();
 
   await page.getByText('از مکالمه خام تا اقدام اصلاحی').waitFor({state:'visible',timeout:15000});
+  if(process.env.KP_ASR_SMOKE==='1'){
+    await page.locator('.sidebar nav button').filter({hasText:'AI و مدل‌ها'}).click();
+    await page.getByText('Whisper Model Manager').waitFor({state:'visible',timeout:5000});
+    await page.getByRole('button',{name:/آماده‌سازی و Cache مدل/}).click();
+    await page.getByText('مدل آماده شد.').waitFor({state:'visible',timeout:240000});
+    const modelBody=await page.locator('body').innerText();
+    if(!modelBody.includes('Whisper Tiny')&&!modelBody.includes('Whisper Small'))throw new Error('asr_model_label_missing');
+  }
 
   await manualCase(page,{
     domain:'sampler',
