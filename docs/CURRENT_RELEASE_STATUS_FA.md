@@ -22,6 +22,9 @@
 - Physician Workflow Gate اضافه شده: ویزیت/تفسیر/ثبت پاسخ/کانال سازمانی/نسخه دوم/کنسلی/تست طلایی.
 - Operational Policy نسخه‌دار برای پزشک و نمونه‌گیر اضافه شده است.
 - پرونده فردی پزشک/نمونه‌گیر دارای Drill-down تماس، Failure Pareto، Critical، Review باز و سیگنال طول تماس است.
+- Master List نمونه‌گیران با ۳۰ فرد فعال، گرید و شهر نسخه‌دار شده؛ افزودن دستی و Team DB persistence فعال است.
+- هر Case نمونه‌گیر `occurredAt` و snapshot گرید/شهر دارد و گزارش بر اساس تاریخ دقیق، روز هفته، ماه شمسی و نام فیلتر و Export می‌شود.
+- Duplicate Guard با SHA-256 از پردازش دوباره فایل صوتی جلوگیری می‌کند.
 - CI علاوه بر Build/Test، Source + Docs + Docker را به‌صورت Recovery Artifact immutable بسته‌بندی می‌کند.
 
 ## Team Docker Runtime
