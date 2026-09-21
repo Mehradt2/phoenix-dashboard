@@ -83,8 +83,8 @@ await manualCase(page,{domain:'sampler',person:added,fileName:'sampler-manual-e2
 await manualCase(page,{domain:'physician',person:'پزشک تست E2E',fileName:'physician-manual-e2e.wav',transcript:'سلام وقت بخیر من پزشک دکترساینا هستم. لطفا نام و مشخصات خودتان را تایید کنید. علت مراجعه چیست و سابقه بیماری و داروهای مصرفی را بفرمایید. برای آزمایش ناشتا باشید و نتیجه را پیگیری کنید. ممنون.'});
 if(process.env.KP_ASR_SMOKE==='1'){
  await page.locator('.sidebar nav button').filter({hasText:'AI و مدل‌ها'}).click();
- await page.getByRole('button',{name:/آماده‌سازی و Cache مدل/}).click();
- await page.waitForFunction(()=>{const t=document.body.innerText;return t.includes('مدل آماده شد.')||t.includes('مدل آماده نشد:')},{timeout:210000});
+ await page.getByRole('button',{name:/آماده‌سازی و Cache مدل|بارگذاری مدل آفلاین/}).click();
+ await page.waitForFunction(()=>{const t=document.body.innerText;return t.includes('مدل Whisper آماده شد.')||t.includes('مدل آماده شد.')||t.includes('مدل آماده نشد:')},undefined,{timeout:300000});
  const modelState=await page.locator('body').innerText();
  if(modelState.includes('مدل آماده نشد:')){const line=modelState.split('\n').find(x=>x.includes('مدل آماده نشد:'))||'model failed';throw new Error('ASR_MODEL_WARM_FAILED: '+line)}
  const st=await realAsrCase(page,{domain:'sampler',person:'محمد حسین محمدیانی',filePath:process.env.KP_ASR_FIXTURE_SAMPLER,date:'2026-09-21'});
