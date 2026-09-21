@@ -38,6 +38,12 @@ Critical override باید در UI و Audit دلیل داشته باشد.
 `GET /api/audit`
 Role: reviewer/supervisor/admin.
 
+## Samplers
+- `GET /api/samplers` — فهرست نمونه‌گیران فعال برای Ingest و گزارش.
+- `POST /api/samplers` — افزودن دستی نمونه‌گیر فعال؛ Auth الزامی و Audit ثبت می‌شود.
+
+Case نمونه‌گیر شامل `occurredAt` و `personMeta` است تا تاریخ تماس، گرید و شهر در گزارش روز/ماه پایدار بماند.
+
 ## Users
 - `GET /api/users`
 - `POST /api/users`
