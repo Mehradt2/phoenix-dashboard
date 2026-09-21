@@ -25,3 +25,5 @@ input,textarea,select{width:100%;border:1px solid #cadadd;border-radius:11px;pad
 @media(max-width:600px){.user-create{grid-template-columns:1fr}}
 
 .person-card[role=button]:hover{transform:translateY(-2px);border-color:#b9d9d4;box-shadow:0 10px 24px rgba(15,48,58,.08)}.person-card[role=button]:focus-visible{outline:3px solid rgba(35,136,119,.22);outline-offset:3px}.profile-drawer{width:min(900px,96vw)}.profile-drawer .guard-list small{display:block;margin-top:3px;color:#80959a}.queue-row>button{flex:none}.queue-row.running .state{font-weight:700;color:#1f786b}.queue-row.failed .state{color:#a34842}.queue-row.done .state{color:#24705b}
+
+.ev.neutral{border-color:#dfe7e9;background:#f7f9fa}.ev.neutral span,.ev.neutral small{color:#768a90}.workflow-form .warningbox{grid-column:1/-1;margin-top:4px}.workflow-form .drawer-title{grid-column:1/-1}.profile-drawer .table{max-height:360px;overflow:auto}
