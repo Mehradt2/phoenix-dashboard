@@ -71,7 +71,7 @@ function App(){
  if(!unlocked)return<AccessGate done={(u)=>{setCurrentUser(u||null);setUnlocked(true)}}/>;
  const meta=DOMAIN_META[domain],canReview=!isTeamMode()||Boolean(currentUser&&['reviewer','supervisor','admin'].includes(currentUser.role)),canDelete=!isTeamMode()||Boolean(currentUser&&['supervisor','admin'].includes(currentUser.role));
  async function addSampler(){try{const row=await createSampler(newSampler);setSamplers(await listSamplers());setPerson(row.name);setNewSampler({name:'',grade:'A',city:'تهران'});setMsg('نمونه‌گیر به فهرست فعال اضافه شد.')}catch(e:any){setMsg(e.message==='sampler_exists'?'این نمونه‌گیر از قبل در فهرست وجود دارد.':e.message||'خطا در افزودن نمونه‌گیر')}}
- function changeDomain(d:QcDomain){if(busy){setMsg('تا پایان فایل جاری یا توقف پردازش، حوزه را تغییر ندهید.');return}setDomain(d);setRows([]);setPerson('');setSelected(null);setProfileName(null);setWf(emptyWorkflow);setPhysWf(emptyPhysicianWorkflow);setMsg('')}
+ function changeDomain(d:QcDomain){if(busy){setMsg('تا پایان فایل جاری یا توقف پردازش، حوزه را تغییر ندهید.');return}setDomain(d);setRows([]);setPerson('');setSelected(null);setProfileName(null);setWf(emptyWorkflow);setPhysWf(emptyPhysicianWorkflow);setReportName('');setReportDate('');setReportMonth('');setMsg('')}
  function pick(fs:FileList|null){if(!fs)return;setRows([...fs].slice(0,100).map((file,i)=>({key:i+'-'+file.name+'-'+file.size,file,personName:person,occurredAt:callDate,status:'queued',message:'در صف'})))}
  function patch(k:string,p:Partial<Row>){setRows(r=>r.map(x=>x.key===k?{...x,...p}:x))}
  function evaluate(text:string,durationSeconds=0){return domain==='sampler'?evaluateConversation(text):evaluatePhysician(text,durationSeconds)}
