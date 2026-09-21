@@ -46,27 +46,31 @@
     ".github/workflows/kuleposhti-pages.yml",
     ".github/workflows/kuleposhti-docker.yml"
   ],
-  "release_family": "qc-online-v1.1",
+  "release_family": "qc-online-v1.2",
   "rule_packs": {
     "sampler": "sampler-conversation-qc-1.1.0",
-    "physician": "physician-qc-1.1.0",
+    "physician": "physician-qc-2.0.0",
     "physician_operational": "physician-ops-2026-09-21",
     "sampler_operational": "sampler-ops-2026-09-21"
   },
   "processing": {
-    "browser_asr_policy": "browser-asr-policy-1.1.0",
-    "model_timeout_ms": 240000,
-    "safe_fallback": "onnx-community/whisper-base",
+    "browser_asr_policy": "browser-asr-policy-1.2.0",
+    "model_timeout_ms": 150000,
+    "safe_fallback": "onnx-community/whisper-tiny",
     "manual_transcript_fallback": true,
     "retry": true,
-    "false_success_blocked": true
+    "false_success_blocked": true,
+    "auto_mode": "WebGPU→whisper-small; no-WebGPU→whisper-tiny",
+    "case_pipeline_gate": "Upload→ASR/manual→QC→encrypted persist→Review→Evidence→Profile→Report→Audit"
   },
   "profiles": {
     "individual_drilldown": true,
     "failure_pareto": true,
     "call_history": true,
     "physician_short_call_signals": true,
-    "external_operational_data": "explicitly gated until real DB/CRM connection"
+    "external_operational_data": "explicitly gated until real DB/CRM connection",
+    "physician_pvq_catalog": "DOC-009 / PVQ-026..040",
+    "sampler_rule_pack": "C01..C09 + workflow 70/30"
   },
   "recovery": {
     "ci_source_bundle": true,
@@ -78,6 +82,14 @@
       "ops",
       "migrations"
     ],
-    "artifact_retention_days": 90
+    "artifact_retention_days": 90,
+    "required_every_release": [
+      "source",
+      "docs",
+      "docker",
+      "migrations",
+      "tests",
+      "knowledge snapshot"
+    ]
   }
 }

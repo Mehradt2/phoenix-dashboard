@@ -58,3 +58,7 @@
 4. Backup را Restore کند.
 5. Smoke Test بگیرد.
 6. دامنه جدید را بدون تغییر Business Logic متصل کند.
+
+- `QC_RULES_AND_CASE_MODEL_FA.md` — Rule Pack پزشک/نمونه‌گیر، شروط Review و مدل پرونده افراد.
+- `FLOW_ACCEPTANCE_TEST_FA.md` — Gate اجباری Upload→QC→Review→Profile→Report.
+- `knowledge/QC_RULE_CATALOG_v1.2.0.json` — Catalog ماشین‌خوان Ruleها و شروط.

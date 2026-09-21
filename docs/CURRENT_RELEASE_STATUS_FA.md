@@ -14,12 +14,11 @@
 ## اصلاحات Release جاری
 این Release برای برطرف‌کردن Gapهای مشاهده‌شده در فلو واقعی QC ایجاد شده است:
 - Pipeline پردازش دیگر Success جعلی نشان نمی‌دهد؛ فقط پرونده واقعاً ذخیره‌شده وارد Review می‌شود.
-- بارگذاری Whisper دارای Timeout و Safe Fallback به مدل کوچک‌تر است.
-- هر فایل در صف، مسیر Transcript دستی و Retry دارد.
+- بارگذاری Whisper Fail-closed است: Auto روی WebGPU از Small و بدون WebGPU از Tiny استفاده می‌کند؛ Timeout مدل ۱۵۰ ثانیه و Fallback نهایی Tiny است.nscript دستی و Retry دارد.
 - پس از ساخت موفق پرونده، کاربر مستقیم به صف Review منتقل می‌شود.
 - صف Review فقط پرونده‌های باز را نشان می‌دهد.
 - Rule Pack نمونه‌گیران: `sampler-conversation-qc-1.1.0`.
-- Rule Pack پزشکان: `physician-qc-1.1.0`.
+- Rule Pack پزشکان: `physician-qc-2.0.0` / `DOC-009 · PVQ-026..040`.
 - Physician Workflow Gate اضافه شده: ویزیت/تفسیر/ثبت پاسخ/کانال سازمانی/نسخه دوم/کنسلی/تست طلایی.
 - Operational Policy نسخه‌دار برای پزشک و نمونه‌گیر اضافه شده است.
 - پرونده فردی پزشک/نمونه‌گیر دارای Drill-down تماس، Failure Pareto، Critical، Review باز و سیگنال طول تماس است.
@@ -71,3 +70,6 @@
 - Windows Offline: Evidence track مستقل و هنوز نیازمند Production Gate اختصاصی است.
 
 هیچ Release بدون Source، Docker، Docs، Tests و Recovery Artifact هم‌زمان «Done» محسوب نمی‌شود.
+
+## E2E واقعی Case Pipeline
+Release جدید علاوه بر Shell، یک Case نمونه‌گیر و یک Case پزشک را از File/Transcript تا Persist، Review Evidence و Profile اجرا می‌کند. پیام Success بدون Case ذخیره‌شده دیگر Gate را Pass نمی‌کند.
