@@ -19,8 +19,8 @@ export async function saveAiInsight(id:string,insight:any){if(!isTeamMode())retu
 export async function listAudit():Promise<AuditEvent[]>{if(!isTeamMode())return vault.listAudit();try{return(await api('/api/audit')).audit}catch{return[]}}
 export async function submitReview(id:string,decision:Review['decision'],workflow:number|null,note:string,workflowEvidence?:any){
  if(!isTeamMode())return vault.submitReview(id,decision,workflow,note,workflowEvidence);
- const c=await getCase(id);if(!c)throw new Error('پرونده پیدا نشد');const convRaw=c.qc?.conversationScore;if(convRaw==null)throw new Error('Conversation Score معتبر نیست');
- const conv=Number(convRaw),final=c.domain==='sampler'?(workflow==null?null:Math.round((conv*.7+workflow*.3)*10)/10):Math.round(conv*10)/10;
+ const c=await getCase(id);if(!c)throw new Error('پرونده پیدا نشد');const convRaw=c.qc?.conversationScore,nonScorable=c.domain==='physician'&&c.qc?.scoreStatus==='non_scorable';if(convRaw==null&&!nonScorable)throw new Error('Conversation Score معتبر نیست');
+ const conv=convRaw==null?null:Number(convRaw),final=c.domain==='sampler'?(conv==null||workflow==null?null:Math.round((conv*.7+workflow*.3)*10)/10):(conv==null?null:Math.round(conv*10)/10);if(c.domain==='sampler'&&(conv==null||workflow==null))throw new Error('Score نمونه‌گیر کامل نیست');
  await api('/api/cases/'+encodeURIComponent(id)+'/reviews',{method:'POST',body:JSON.stringify({decision,workflowScore:workflow,conversationScore:conv,finalScore:final,note,workflowEvidence})});
  return getCase(id)
 }
