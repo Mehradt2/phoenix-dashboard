@@ -1,11 +1,22 @@
 import{chromium}from'playwright';
 const url=process.env.KP_SMOKE_URL||'http://127.0.0.1:4173/phoenix-dashboard/';
 const browser=await chromium.launch({headless:true});
+const offlineStrict=process.env.KP_OFFLINE_STRICT==='1',localAiSmoke=process.env.KP_LOCAL_AI_SMOKE==='1';
+const externalAttempts=[];
 const probeUrl=(name)=>url+(url.includes('?')?'&':'?')+'probe='+encodeURIComponent(name)+'-'+Date.now();
 
 async function openUnlocked(){
  const context=await browser.newContext({viewport:{width:1440,height:1000}});
  const page=await context.newPage(),errors=[];
+ if(offlineStrict)await page.route('**/*',async route=>{
+  const raw=route.request().url();
+  try{
+   const u=new URL(raw);
+   const local=u.hostname==='127.0.0.1'||u.hostname==='localhost'||u.protocol==='blob:'||u.protocol==='data:';
+   if(local)return route.continue();
+   externalAttempts.push(raw);console.log('OFFLINE_EXTERNAL_BLOCKED:',raw);return route.abort('blockedbyclient');
+  }catch{return route.continue()}
+ });
  page.on('pageerror',e=>errors.push('pageerror:'+e.message));
  page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('KULEPOSHTI_RUNTIME_ERROR'))errors.push('console:'+m.text());if(['error','warning'].includes(m.type()))console.log('BROWSER_'+m.type().toUpperCase()+':',m.text())});
  page.on('requestfailed',r=>console.log('REQUEST_FAILED:',r.url(),r.failure()?.errorText||''));
@@ -45,7 +56,7 @@ async function manualCase(page,{domain,person,fileName,transcript,date}){
  await page.getByText('صف Review').waitFor({state:'visible',timeout:8000});
  await page.getByText(person,{exact:true}).first().waitFor({state:'visible',timeout:8000});
 }
-async function realAsrCase(page,{domain,person,filePath,date}){
+async function realAsrCase(page,{domain,person,filePath,date,testCopilot=false}){
  if(!filePath)throw new Error('real_asr_fixture_missing:'+domain);
  await selectDomain(page,domain);
  await page.locator('.sidebar nav button').filter({hasText:'ورودی مکالمات'}).click();
@@ -62,6 +73,15 @@ async function realAsrCase(page,{domain,person,filePath,date}){
  await page.locator('.review-drawer details summary').filter({hasText:'Transcript کامل'}).click();
  const transcript=(await page.locator('.review-drawer pre').innerText()).trim();
  if(transcript.length<10)throw new Error('real_asr_transcript_too_short:'+domain);
+ if(testCopilot){
+  await page.getByRole('button',{name:/تحلیل با AI محلی/}).click();
+  await page.waitForFunction(()=>{const t=document.body.innerText;return t.includes('تحلیل AI محلی ذخیره شد.')||t.includes('AI محلی آماده نشد:')},undefined,{timeout:420000});
+  const body=await page.locator('body').innerText();
+  if(body.includes('AI محلی آماده نشد:')){const line=body.split('\n').find(x=>x.includes('AI محلی آماده نشد:'))||'local ai failed';throw new Error('LOCAL_AI_SMOKE_FAILED: '+line)}
+  const aiText=(await page.locator('.review-drawer .ai-result').innerText()).trim();
+  if(aiText.length<20)throw new Error('LOCAL_AI_OUTPUT_TOO_SHORT');
+  console.log(JSON.stringify({case:'local-copilot-grounded',ok:true,preview:aiText.slice(0,160)}));
+ }
  await page.locator('.review-drawer .icon-only').click();
  return transcript
 }
@@ -87,7 +107,7 @@ if(process.env.KP_ASR_SMOKE==='1'){
  await page.waitForFunction(()=>{const t=document.body.innerText;return t.includes('مدل Whisper آماده شد.')||t.includes('مدل آماده شد.')||t.includes('مدل آماده نشد:')},undefined,{timeout:300000});
  const modelState=await page.locator('body').innerText();
  if(modelState.includes('مدل آماده نشد:')){const line=modelState.split('\n').find(x=>x.includes('مدل آماده نشد:'))||'model failed';throw new Error('ASR_MODEL_WARM_FAILED: '+line)}
- const st=await realAsrCase(page,{domain:'sampler',person:'محمد حسین محمدیانی',filePath:process.env.KP_ASR_FIXTURE_SAMPLER,date:'2026-09-21'});
+ const st=await realAsrCase(page,{domain:'sampler',person:'محمد حسین محمدیانی',filePath:process.env.KP_ASR_FIXTURE_SAMPLER,date:'2026-09-21',testCopilot:localAiSmoke});
  const pt=await realAsrCase(page,{domain:'physician',person:'پزشک ASR واقعی',filePath:process.env.KP_ASR_FIXTURE_PHYSICIAN});
  await duplicateGuard(page,process.env.KP_ASR_FIXTURE_SAMPLER,'محمد حسین محمدیانی');
  console.log(JSON.stringify({case:'real-audio-whisper-qc',ok:true,samplerTranscript:st.slice(0,120),physicianTranscript:pt.slice(0,120)}));
@@ -99,6 +119,7 @@ await page.locator('.report-filters select').first().selectOption(added);
 const reportText=await page.locator('main').innerText();
 if(!reportText.includes('شهریور')||!reportText.includes(added)||!reportText.includes('یکشنبه'))throw new Error('dated_sampler_report_missing');
 if(errors.length)throw new Error(errors.join(' | '));
-console.log(JSON.stringify({case:'sampler-directory-date-month-report',ok:true,person:added}));
+if(offlineStrict&&externalAttempts.length)throw new Error('OFFLINE_NETWORK_VIOLATION: '+externalAttempts.slice(0,5).join(' | '));
+console.log(JSON.stringify({case:'sampler-directory-date-month-report',ok:true,person:added,offlineStrict,localAiSmoke}));
 await context.close();
 await browser.close();
