@@ -14,7 +14,7 @@ function withTimeout<T>(promise:Promise<T>,ms:number,code:string):Promise<T>{
 }
 
 function fallbackPlan(h:HardwareProfile,label='Whisper Tiny · Safe fallback'):ModelPlan{
- return{mode:'standard',id:BASE_FALLBACK_ID,label,device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',reason:'Fallback سبک برای بازیابی سریع پردازش مرورگر؛ خروجی همچنان نیازمند Human Review است.',fallbackId:null,authRequired:false,subscriptionRequired:false,runtime:'browser-local',validation:'standard',licenseNotice:'Public model weights; no paid API required.'};
+ const fp16=h.webgpu&&h.webgpuF16;return{mode:'standard',id:BASE_FALLBACK_ID,label,device:fp16?'webgpu':'wasm',dtype:fp16?'fp16':'q8',reason:'Fallback سبک برای بازیابی سریع پردازش مرورگر؛ WebGPU فقط وقتی shader-f16 واقعی دارد استفاده می‌شود و خروجی همچنان نیازمند Human Review است.',fallbackId:null,authRequired:false,subscriptionRequired:false,runtime:'browser-local',validation:'standard',licenseNotice:'Public model weights; no paid API required.'};
 }
 
 async function createOne(plan:ModelPlan,h:HardwareProfile,progress:Progress):Promise<Loaded>{
@@ -34,7 +34,7 @@ async function createOne(plan:ModelPlan,h:HardwareProfile,progress:Progress):Pro
 
 async function create(plan:ModelPlan,h:HardwareProfile,progress:Progress):Promise<Loaded>{
  const attempts:ModelPlan[]=[plan];
- if(plan.fallbackId&&plan.fallbackId!==plan.id)attempts.push({...plan,id:plan.fallbackId,label:'Whisper Small · fallback',device:h.webgpu?'webgpu':'wasm',dtype:h.webgpu?'fp16':'q8',fallbackId:null,reason:'Fallback after selected model failure'});
+ if(plan.fallbackId&&plan.fallbackId!==plan.id)attempts.push({...plan,id:plan.fallbackId,label:'Whisper Small · fallback',device:(h.webgpu&&h.webgpuF16)?'webgpu':'wasm',dtype:(h.webgpu&&h.webgpuF16)?'fp16':'q8',fallbackId:null,reason:'Fallback after selected model failure'});
  if(!attempts.some(x=>x.id===BASE_FALLBACK_ID))attempts.push(fallbackPlan(h));
  let last:any=null;
  for(let i=0;i<attempts.length;i++){
