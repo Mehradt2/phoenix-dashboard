@@ -27,3 +27,19 @@ input,textarea,select{width:100%;border:1px solid #cadadd;border-radius:11px;pad
 .person-card[role=button]:hover{transform:translateY(-2px);border-color:#b9d9d4;box-shadow:0 10px 24px rgba(15,48,58,.08)}.person-card[role=button]:focus-visible{outline:3px solid rgba(35,136,119,.22);outline-offset:3px}.profile-drawer{width:min(900px,96vw)}.profile-drawer .guard-list small{display:block;margin-top:3px;color:#80959a}.queue-row>button{flex:none}.queue-row.running .state{font-weight:700;color:#1f786b}.queue-row.failed .state{color:#a34842}.queue-row.done .state{color:#24705b}
 
 .ev.neutral{border-color:#dfe7e9;background:#f7f9fa}.ev.neutral span,.ev.neutral small{color:#768a90}.workflow-form .warningbox{grid-column:1/-1;margin-top:4px}.workflow-form .drawer-title{grid-column:1/-1}.profile-drawer .table{max-height:360px;overflow:auto}
+
+.sampler-add{margin:10px 0 14px;border:1px solid var(--line);border-radius:12px;background:#f8fafb;padding:10px 12px}
+.sampler-add summary{cursor:pointer;font-weight:700;font-size:11px;color:#45646b}
+.sampler-add-grid{display:grid;grid-template-columns:1.5fr .7fr 1fr auto;gap:8px;align-items:center;margin-top:10px}
+.sampler-add-grid input,.sampler-add-grid select{margin:0}
+.sampler-directory{margin-bottom:14px}
+.filter-grid{display:grid;grid-template-columns:1.25fr 1fr 1fr auto;gap:10px;align-items:end}
+.filter-grid label{margin:0}
+.filter-grid>button{height:42px}
+.report-filters{margin-bottom:14px}
+.report-filters>small{display:block;margin-top:10px;color:#6d858b}
+.latin-date{display:block;direction:ltr;text-align:right;color:#8b9da1;margin-top:3px;font-size:9px}
+.file-main select,.file-main input[type=date]{padding:6px 8px;font-size:10px}
+.person-top small{display:block;color:#84979c;font-size:9px;margin-top:3px}
+@media(max-width:980px){.sampler-add-grid,.filter-grid{grid-template-columns:1fr 1fr}.sampler-add-grid button,.filter-grid>button{grid-column:1/-1}}
+@media(max-width:600px){.sampler-add-grid,.filter-grid{grid-template-columns:1fr}.sampler-add-grid button,.filter-grid>button{grid-column:auto}}
