@@ -40,6 +40,34 @@ async function manualCase(page,{domain,person,fileName,bytes,transcript,ruleId})
   await page.getByText(person,{exact:true}).first().waitFor({state:'visible',timeout:5000});
 }
 
+async function realAsrCase(page,{domain,person,filePath}){
+  if(!filePath)throw new Error('real_asr_fixture_missing:'+domain);
+  await page.locator('.domain-switch button').filter({hasText:domain==='sampler'?'نمونه‌گیران':'پزشکان'}).click();
+  await page.locator('.sidebar nav button').filter({hasText:'ورودی مکالمات'}).click();
+  await page.getByText(domain==='sampler'?'ورودی مکالمات نمونه‌گیران':'ورودی مکالمات پزشکان').waitFor({state:'visible',timeout:5000});
+  const personInput=page.locator(domain==='sampler'?'input[placeholder*="نمونه‌گیر"]':'input[placeholder*="پزشک"]').first();
+  await personInput.fill(person);
+  await page.locator('input[type=file][accept="audio/*"]').first().setInputFiles(filePath);
+  await page.getByRole('button',{name:/شروع پردازش Batch/}).click();
+  const row=page.locator('.table tbody tr').filter({hasText:person}).first();
+  try{
+    await row.waitFor({state:'visible',timeout:360000});
+  }catch(e){
+    const queue=await page.locator('.queue').innerText().catch(()=> 'queue-unavailable');
+    const toast=await page.locator('.toast').innerText().catch(()=> 'toast-unavailable');
+    throw new Error('real_asr_pipeline_failed:'+domain+' | '+toast+' | '+queue.slice(0,500));
+  }
+  await row.getByRole('button',{name:/بررسی/}).click();
+  await page.locator('.review-drawer .evidence-list .ev').first().waitFor({state:'visible',timeout:10000});
+  await page.locator('.review-drawer details summary').filter({hasText:'Transcript کامل'}).click();
+  const transcript=(await page.locator('.review-drawer pre').innerText()).trim();
+  if(transcript.length<10)throw new Error('real_asr_transcript_too_short:'+domain+':'+transcript);
+  await page.locator('.review-drawer .icon-only').click();
+  await page.locator('.sidebar nav button').filter({hasText:domain==='sampler'?'نمونه‌گیران':'پزشکان'}).click();
+  await page.getByText(person,{exact:true}).first().waitFor({state:'visible',timeout:10000});
+  return transcript;
+}
+
 async function operationalUnlock(){
   const context=await browser.newContext({viewport:{width:1440,height:1000}});
   const page=await context.newPage(),errors=[];
@@ -59,6 +87,9 @@ async function operationalUnlock(){
     await page.getByText('مدل آماده شد.').waitFor({state:'visible',timeout:240000});
     const modelBody=await page.locator('body').innerText();
     if(!modelBody.includes('Whisper Tiny')&&!modelBody.includes('Whisper Small'))throw new Error('asr_model_label_missing');
+    const samplerTranscript=await realAsrCase(page,{domain:'sampler',person:'نمونه‌گیر ASR واقعی',filePath:process.env.KP_ASR_FIXTURE_SAMPLER});
+    const physicianTranscript=await realAsrCase(page,{domain:'physician',person:'پزشک ASR واقعی',filePath:process.env.KP_ASR_FIXTURE_PHYSICIAN});
+    console.log(JSON.stringify({case:'real-audio-whisper-qc',ok:true,samplerTranscript:samplerTranscript.slice(0,120),physicianTranscript:physicianTranscript.slice(0,120)}));
   }
 
   await manualCase(page,{
