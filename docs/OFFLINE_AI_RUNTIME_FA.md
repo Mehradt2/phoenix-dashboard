@@ -58,11 +58,11 @@ npm run desktop:build
 `scripts/build-desktop.mjs` قبل از Tauri build:
 1. Model Pack را Verify می‌کند.
 2. UI را با Base نسبی می‌سازد.
-3. مدل‌ها را داخل `dist/models` Stage می‌کند.
-4. Runtime را روی `modelSource=bundled` قفل می‌کند.
-5. `OFFLINE_BUILD.txt` را برای Audit تولید می‌کند.
+3. Runtime را روی `modelSource=bundled` قفل می‌کند.
+4. `OFFLINE_BUILD.txt` را برای Audit تولید می‌کند.
+5. مدل‌های حجیم را داخل Frontend binary کپی نمی‌کند؛ Tauri آن‌ها را با `bundle.resources` در `$RESOURCE/models` بسته‌بندی می‌کند و WebView فقط از Asset Protocol محدودشده به همین مسیر می‌خواند.
 
-خروجی Windows هدف: NSIS installer.
+خروجی Windows هدف: NSIS installer. در Desktop، Rust مسیر `$RESOURCE/models` را به Frontend اعلام می‌کند و `convertFileSrc` آن را به URL داخلی Asset Protocol تبدیل می‌کند؛ بنابراین Model Pack مستقل از `frontendDist` باقی می‌ماند.
 
 ## Docker Offline
 ```
