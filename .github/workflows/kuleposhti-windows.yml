@@ -37,7 +37,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
 
       - name: Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -52,7 +51,7 @@ jobs:
 
       - name: Install JavaScript dependencies
         shell: pwsh
-        run: npm ci
+        run: npm install
 
       - name: Install model-pack builder
         shell: pwsh
