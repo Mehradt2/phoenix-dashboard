@@ -1,0 +1,131 @@
+name: KulePoshti Windows Offline
+
+on:
+  push:
+    branches: [kuleposhti-operational-web-v1]
+    paths:
+      - 'src/**'
+      - 'src-tauri/**'
+      - 'offline/**'
+      - 'scripts/build-desktop.mjs'
+      - 'scripts/build_offline_model_pack.py'
+      - 'scripts/verify-offline-model-pack.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/kuleposhti-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kuleposhti-windows-offline
+  cancel-in-progress: true
+
+jobs:
+  windows-offline-build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    env:
+      KP_MODEL_PACK_PROFILE: portable
+      KP_MODEL_PACK_DIR: offline-models
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install JavaScript dependencies
+        shell: pwsh
+        run: npm ci
+
+      - name: Install model-pack builder
+        shell: pwsh
+        run: python -m pip install "huggingface_hub>=0.34,<1"
+
+      - name: Build immutable offline model pack
+        shell: pwsh
+        run: |
+          python scripts/build_offline_model_pack.py --profile $env:KP_MODEL_PACK_PROFILE --output $env:KP_MODEL_PACK_DIR
+          node scripts/verify-offline-model-pack.mjs $env:KP_MODEL_PACK_DIR $env:KP_MODEL_PACK_PROFILE
+
+      - name: Frontend and QC regression gates
+        shell: pwsh
+        run: |
+          npm run check
+          npm test
+          npm run build
+
+      - name: Generate and validate Rust lockfile
+        shell: pwsh
+        run: |
+          Push-Location src-tauri
+          cargo generate-lockfile
+          cargo check
+          Pop-Location
+          if (!(Test-Path src-tauri/Cargo.lock)) { throw "Cargo.lock was not generated" }
+
+      - name: Build offline Tauri NSIS
+        shell: pwsh
+        run: npm run desktop:build
+
+      - name: Collect Windows evidence
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path windows-artifacts | Out-Null
+          $installer = Get-ChildItem -Path src-tauri/target/release/bundle/nsis -Filter *.exe -Recurse | Select-Object -First 1
+          if (-not $installer) { throw "NSIS installer not found" }
+          $portable = Get-ChildItem -Path src-tauri/target/release -Filter "kuleposhti-qc.exe" | Select-Object -First 1
+          if (-not $portable) { throw "Portable executable not found" }
+          Copy-Item $installer.FullName windows-artifacts/
+          Copy-Item $portable.FullName windows-artifacts/KulePoshti-QC-Portable.exe
+          Copy-Item src-tauri/Cargo.lock windows-artifacts/Cargo.lock
+          Copy-Item offline-models/model-pack.lock.json windows-artifacts/model-pack.lock.json
+
+          $installerHash=(Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLower()
+          $portableHash=(Get-FileHash $portable.FullName -Algorithm SHA256).Hash.ToLower()
+          $modelLockHash=(Get-FileHash offline-models/model-pack.lock.json -Algorithm SHA256).Hash.ToLower()
+          $cargoLockHash=(Get-FileHash src-tauri/Cargo.lock -Algorithm SHA256).Hash.ToLower()
+
+          @(
+            "source_sha=$env:GITHUB_SHA"
+            "windows_runner=$env:RUNNER_OS"
+            "profile=$env:KP_MODEL_PACK_PROFILE"
+            "installer=$($installer.Name)"
+            "installer_sha256=$installerHash"
+            "portable=KulePoshti-QC-Portable.exe"
+            "portable_sha256=$portableHash"
+            "model_lock_sha256=$modelLockHash"
+            "cargo_lock_sha256=$cargoLockHash"
+            "audio_cloud_transport=false"
+            "paid_ai_api=false"
+            "offline_models_bundled=true"
+            "windows_build_pass=true"
+            "runtime_uat_pass=false"
+          ) | Set-Content -Encoding utf8 windows-artifacts/WINDOWS_BUILD_EVIDENCE.txt
+
+          Get-ChildItem windows-artifacts | Format-Table Name,Length
+          Get-Content windows-artifacts/WINDOWS_BUILD_EVIDENCE.txt
+
+      - name: Upload Windows installer and evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: kuleposhti-windows-offline-\${{ github.sha }}
+          path: windows-artifacts/*
+          if-no-files-found: error
+          retention-days: 90
