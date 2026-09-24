@@ -1,6 +1,6 @@
 source_branch=kuleposhti-operational-web-v1
-source_sha=2443fbedb3941a9c2c2b994ba4f4f6202ca64647
-published_at=2026-09-24T12:12:15Z
+source_sha=e54821c85df6a08c45b5cc4c38abe5444a30d72b
+published_at=2026-09-24T12:19:29Z
 runtime=browser-local
 audio_cloud_transport=false
 paid_asr_api=false
