@@ -1,0 +1,7 @@
+source_sha=132256d74bb8afe2c3145de770c86fd44158f818
+verified_at=2026-09-24T12:27:44Z
+public_runtime=true
+real_audio_whisper_e2e=true
+sampler_qc_e2e=true
+physician_qc_e2e=true
+manual_recovery_e2e=true
