@@ -69,6 +69,10 @@ jobs:
           npm test
           npm run build
 
+      - name: Generate desktop icons for Rust resource check
+        shell: pwsh
+        run: npm run desktop:icons
+
       - name: Generate and validate Rust lockfile
         shell: pwsh
         run: |
