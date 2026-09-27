@@ -1,0 +1,11 @@
+Validate kuleposhti-operational-web-v1 sampler QC release on 2026-09-21.
+Trigger Team Docker sampler migration validation.
+Trigger immutable source backup artifact validation.
+Retry source artifact upload with workspace-safe path.
+Diagnose browser Whisper model warm failure on current source.
+Capture browser model network diagnostics.
+Validate shader-f16 guard and WASM q8 fallback.
+Validate release head 46189cf17e15fcbd979c684cccb24b1f7bb66418 after check alignment.
+Validate offline AI/Tauri head 89db73bc0025585eafed6bd33b931048225d53c3.
+Validate Tauri resource offline AI head 67fe9b97d51cf602d5204976cd7d6775c9d0991c.
+Validate latest offline AI source a35b094c395e3a8ee6d47430dd38ffbe1abfd93a.
