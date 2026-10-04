@@ -35,3 +35,14 @@ export function individualProfile(cases:CaseRecord[],domain:QcDomain,name:string
  const sampleFlag=nScored<5?'نمونه کم':nScored<10?'قابل نمایش UAT؛ مقایسه محدود':'حجم مناسب برای تحلیل دوره‌ای';
  return{name,total:rows.length,scored:nScored,nonScorable,avg,reviewOpen,reviewRate:rows.length?Math.round(reviewOpen/rows.length*1000)/10:0,criticalCalls,criticalRate:nScored?Math.round(criticalCalls/nScored*1000)/10:0,ruleCompliance,sampleFlag,samplePolicy:'آستانه‌های ۵/۱۰ فعلاً UAT پیشنهادی‌اند و Policy نهایی نیستند.'}
 }
+
+
+export function vocExecutive(cases:CaseRecord[]){
+ const xs=filtered(cases,'voc'),dissatisfied=xs.filter(x=>x.qc?.satisfaction==='dissatisfied').length,satisfied=xs.filter(x=>x.qc?.satisfaction==='satisfied').length,mixed=xs.filter(x=>x.qc?.satisfaction==='mixed').length,urgent=xs.filter(x=>x.qc?.urgency==='urgent').length,reviewOpen=xs.filter(x=>x.status==='needs_review').length;
+ return{volume:xs.length,dissatisfied,satisfied,mixed,urgent,reviewOpen,dissatisfiedRate:xs.length?Math.round(dissatisfied/xs.length*1000)/10:0,satisfiedRate:xs.length?Math.round(satisfied/xs.length*1000)/10:0}
+}
+export function vocTopicDistribution(cases:CaseRecord[]){
+ const xs=filtered(cases,'voc'),m=new Map<string,{label:string,count:number,critical:boolean}>();
+ for(const c of xs)for(const t of c.qc?.topics||[]){const cur=m.get(t.code)||{label:String(t.label||t.code),count:0,critical:false};cur.count++;m.set(t.code,cur)}
+ return[...m.entries()].map(([id,v])=>({id,...v})).sort((a,b)=>b.count-a.count).slice(0,12)
+}
