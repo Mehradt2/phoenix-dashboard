@@ -1,0 +1,26 @@
+{
+  "format": "JSONL",
+  "example": {
+    "id": "voc-001",
+    "domain": "voc",
+    "text": "از تاخیر جواب آزمایش ناراضی هستم",
+    "expected": {
+      "topics": [
+        "result_delay"
+      ],
+      "satisfaction": "dissatisfied",
+      "criticalFailures": [],
+      "entities": {}
+    },
+    "doubleAnnotated": true,
+    "adjudicated": true
+  },
+  "required": [
+    "id",
+    "domain",
+    "text",
+    "expected",
+    "doubleAnnotated",
+    "adjudicated"
+  ]
+}
