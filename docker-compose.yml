@@ -29,6 +29,13 @@ services:
     networks: [internal]
     restart: "no"
 
+  text-intelligence:
+    build:
+      context: .
+      dockerfile: docker/text-intelligence/Dockerfile
+    restart: unless-stopped
+    networks: [internal]
+
   api:
     build:
       context: .
@@ -44,9 +51,13 @@ services:
       SESSION_HOURS: ${SESSION_HOURS:-12}
       ALLOWED_ORIGINS: https://${DOMAIN:?set DOMAIN}
       DB_POOL_MAX: ${DB_POOL_MAX:-10}
+      TEXT_INTELLIGENCE_URL: http://text-intelligence:8090
+      TEXT_INTELLIGENCE_TIMEOUT_MS: ${TEXT_INTELLIGENCE_TIMEOUT_MS:-15000}
+      OGANSON_SHARED_SECRET: ${OGANSON_SHARED_SECRET:?set OGANSON_SHARED_SECRET}
     depends_on:
       db: {condition: service_healthy}
       migrate: {condition: service_completed_successfully}
+      text-intelligence: {condition: service_healthy}
     networks: [internal]
 
   web:
