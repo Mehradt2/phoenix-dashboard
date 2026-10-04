@@ -1,0 +1,45 @@
+{
+  "version": "2.0.0-candidate",
+  "branch": "kuleposhti-oganson-text-intelligence-v2",
+  "architecture": "Oganson Local ASR -> KulePoshti API -> Persian Text Intelligence -> Domain Router -> PostgreSQL -> Review/Profile/Reports",
+  "domains": [
+    "physician",
+    "sampler",
+    "voc"
+  ],
+  "sourceOfTruth": {
+    "schema": "server/migrations/003_text_intelligence_v2.sql",
+    "textBrain": "text-intelligence/app/engine.py",
+    "lexicon": "text-intelligence/knowledge/medical_lexicon_v1.json",
+    "ogansonContract": "docs/OGANSON_INTEGRATION_CONTRACT_FA.md",
+    "prd": "docs/PRD_V2_OGANSON_TEXT_INTELLIGENCE_FA.md"
+  },
+  "invariants": [
+    "Raw audio is owned by Oganson; KulePoshti requires transcript only.",
+    "No paid AI API in critical path.",
+    "No numeric score is invented for VOC.",
+    "Physician metadata-dependent rules remain human/external-data gated.",
+    "Sampler workflow is separate from conversation QC.",
+    "Audit is append-only.",
+    "All release schema changes use forward migrations.",
+    "Documentation and Docker are mandatory release artifacts."
+  ],
+  "acceptanceTargets": {
+    "criticalRuleRecall": ">=98%",
+    "medicalEntityRecall": ">=95%",
+    "negationAccuracy": ">=99%",
+    "vocDissatisfactionRecall": ">=95%",
+    "vocTopicMacroF1": ">=0.90"
+  },
+  "dates": {
+    "storage": "UTC/timestamptz",
+    "filters": [
+      "gregorian",
+      "jalali"
+    ],
+    "exports": [
+      "gregorian",
+      "jalali"
+    ]
+  }
+}
