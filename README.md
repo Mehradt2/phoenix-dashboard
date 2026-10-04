@@ -1,6 +1,6 @@
 # KulePoshti — Persian QC Operations OS
 
-کوله‌پشتی یک سیستم Local-first / Team-ready برای کنترل کیفیت مکالمات فارسی پزشکان و نمونه‌گیران است.
+کوله‌پشتی یک سیستم Local-first / Team-ready برای کنترل کیفیت مکالمات فارسی پزشکان، نمونه‌گیران و VOC است. در معماری v2، Oganson سرویس لوکال ASR است و کوله‌پشتی مغز تحلیل متن، Evidence، Score، پرونده و گزارش است.
 
 ## Quick access
 ### Operational Browser Runtime
@@ -30,9 +30,10 @@ Start here: [docs/00_INDEX_FA.md](docs/00_INDEX_FA.md)
 ## Domains
 - Physician QC
 - Sampler QC
+- VOC / Customer History
 
-هسته مشترک:
-`Local ASR → Transcript → Evidence → Versioned Rules → Human Review → Audit → Profiles/Reports`
+هسته v2:
+`Oganson Local ASR → Transcript API → Persian Text Intelligence → Domain Rules/VOC → Human Review → Audit → Profiles/Reports`
 
 ## Zero-cost AI policy
 - Whisper Small: operational baseline
@@ -110,3 +111,8 @@ Index: [docs/00_INDEX_FA.md](docs/00_INDEX_FA.md)
 - Docker: `docker-compose.yml`
 - API: `server/src`
 - KB manifest: `knowledge/PROJECT_KNOWLEDGE.json`
+
+## v2 Oganson / Local Server
+Source branch: `kuleposhti-oganson-text-intelligence-v2`
+
+Start docs: [PRD v2](docs/PRD_V2_OGANSON_TEXT_INTELLIGENCE_FA.md) · [Architecture v2](docs/ARCHITECTURE_V2_LOCAL_SERVER_FA.md) · [Oganson Contract](docs/OGANSON_INTEGRATION_CONTRACT_FA.md)
