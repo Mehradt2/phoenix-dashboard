@@ -1,0 +1,147 @@
+name: KulePoshti v2 Local Text Intelligence
+
+on:
+  push:
+    branches: [kuleposhti-oganson-text-intelligence-v2]
+    paths:
+      - 'src/**'
+      - 'server/**'
+      - 'text-intelligence/**'
+      - 'docker/**'
+      - 'docker-compose*.yml'
+      - 'docs/**'
+      - 'knowledge/**'
+      - 'package.json'
+      - '.github/workflows/kuleposhti-v2-local.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Frontend
+        run: |
+          npm install
+          npm run check
+          npm test
+          npm run build
+      - name: API
+        working-directory: server
+        run: |
+          npm install
+          npm test
+          node --check src/index.mjs
+          node --check src/calendar.mjs
+          node --check src/textIntelligence.mjs
+      - name: Persian text brain unit tests
+        run: python -m unittest discover -s text-intelligence/tests -p 'test_*.py'
+      - name: Compose config
+        env:
+          DOMAIN: localhost
+          POSTGRES_PASSWORD: ci-postgres-password-2026
+          DATA_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          BOOTSTRAP_ADMIN_EMAIL: qc-admin@example.org
+          BOOTSTRAP_ADMIN_PASSWORD: CI-Strong-Passphrase-2026!
+          OGANSON_SHARED_SECRET: CI-Oganson-Secret-2026
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml config >/tmp/kp-compose-v2.yml
+
+  integration:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      DOMAIN: localhost
+      POSTGRES_DB: kuleposhti
+      POSTGRES_USER: kuleposhti
+      POSTGRES_PASSWORD: ci-postgres-password-2026
+      DATA_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      BOOTSTRAP_ADMIN_EMAIL: qc-admin@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: CI-Strong-Passphrase-2026!
+      OGANSON_SHARED_SECRET: CI-Oganson-Secret-2026
+      KP_RELEASE: v2-ci-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build v2 stack
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml build api web migrate text-intelligence
+      - name: Start database and migrate
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d db
+          docker compose -f docker-compose.yml -f docker-compose.local.yml run --rm migrate
+      - name: Start API/Text/Web
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml up -d text-intelligence api web
+      - name: Wait for health
+        run: |
+          for i in $(seq 1 80); do
+            if curl -fsS http://localhost:8088/api/health | grep -q '"ok":true'; then exit 0; fi
+            sleep 2
+          done
+          docker compose -f docker-compose.yml -f docker-compose.local.yml logs --tail=300
+          exit 1
+      - name: Oganson physician ingest
+        run: >
+          curl -fsS -H 'content-type: application/json' -H 'x-oganson-token: CI-Oganson-Secret-2026'
+          -d '{"externalId":"og-ci-doc-1","domain":"physician","subjectId":"doc-1","subjectName":"پزشک تست","occurredAt":"2026-10-04T08:00:00+03:30","text":"سلام من پزشک دکترساینا هستم. با خود بیمار صحبت می کنم؟ چه دارویی مصرف می کنید و دوز چند میلی گرم است؟ از چه زمانی علائم شروع شده و سابقه بیماری دارید؟"}'
+          http://localhost:8088/api/integrations/oganson/transcripts
+          | grep -q '"caseId"'
+      - name: Oganson sampler ingest
+        run: >
+          curl -fsS -H 'content-type: application/json' -H 'x-oganson-token: CI-Oganson-Secret-2026'
+          -d '{"externalId":"og-ci-sampler-1","domain":"sampler","subjectId":"sampler-1","subjectName":"نمونه گیر تست","occurredAt":"2026-10-04T07:30:00+03:30","text":"سلام وقت بخیر من نمونه گیر روبرا هستم. فردا ساعت 8 تا 9 خدمت می رسم. لطفا آدرس خیابان آزادی کوچه یک پلاک 2 را تایید کنید. قبل از رسیدن تماس می گیرم. ناشتا باشید و آب ساده مجاز است. سوالی دارید؟ پس هماهنگ شد ممنون."}'
+          http://localhost:8088/api/integrations/oganson/transcripts
+          | grep -q '"caseId"'
+      - name: Oganson VOC ingest
+        run: >
+          curl -fsS -H 'content-type: application/json' -H 'x-oganson-token: CI-Oganson-Secret-2026'
+          -d '{"externalId":"og-ci-voc-1","domain":"voc","subjectId":"user-1","subjectName":"کاربر تست","occurredAt":"2026-10-04T09:00:00+03:30","text":"از تاخیر جواب آزمایش خیلی ناراضی هستم و هنوز نتیجه نیامده."}'
+          http://localhost:8088/api/integrations/oganson/transcripts
+          | grep -q '"dissatisfied"'
+      - name: Login and verify histories
+        run: |
+          curl -fsS -c /tmp/kp.cookies -H 'Content-Type: application/json' -d '{"email":"qc-admin@example.org","password":"CI-Strong-Passphrase-2026!"}' http://localhost:8088/api/auth/login | grep -q '"role":"admin"'
+          curl -fsS -b /tmp/kp.cookies 'http://localhost:8088/api/cases?domain=physician&from=1405-07-12&to=1405-07-12&calendar=jalali' | grep -q 'پزشک تست'
+          curl -fsS -b /tmp/kp.cookies 'http://localhost:8088/api/profiles/voc?from=2026-10-04&to=2026-10-04' | grep -q 'کاربر تست'
+          curl -fsS -b /tmp/kp.cookies 'http://localhost:8088/api/exports/cases.csv?domain=voc&from=2026-10-04&to=2026-10-04' | grep -q 'date_jalali'
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml logs --tail=300
+      - name: Shutdown
+        if: always()
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml down -v
+
+  publish:
+    needs: integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - {name: web-v2, file: docker/web/Dockerfile}
+          - {name: api-v2, file: docker/api/Dockerfile}
+          - {name: text-intelligence-v2, file: docker/text-intelligence/Dockerfile}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.target.file }}
+          push: true
+          tags: |
+            ghcr.io/mehradt2/kuleposhti-${{ matrix.target.name }}:v2-latest
+            ghcr.io/mehradt2/kuleposhti-${{ matrix.target.name }}:${{ github.sha }}
