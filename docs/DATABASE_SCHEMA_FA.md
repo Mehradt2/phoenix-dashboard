@@ -1,6 +1,6 @@
 # مدل داده PostgreSQL — Team Runtime
 
-Migrationهای مرجع: `server/migrations/001_init.sql` و `002_sampler_registry_case_date.sql`
+Migrationهای مرجع: `001_init.sql`، `002_sampler_registry_case_date.sql` و `003_text_intelligence_v2.sql`
 
 ## users
 هویت کاربران تیم:
@@ -94,3 +94,33 @@ Trigger دیتابیس UPDATE/DELETE روی Audit را Reject می‌کند.
 - Forward-only و idempotent.
 - هر migration نام‌دار و در `schema_migrations` ثبت می‌شود.
 - migration destructive بدون Backup + rollback plan ممنوع.
+
+
+## v2 — subjects
+هویت مشترک پرونده برای physician / sampler / voc:
+- domain
+- external_key
+- display_name
+- metadata
+
+## cases v2
+فیلدهای جدید:
+- subject_id
+- external_source / external_id
+- occurred_at_ts
+- transcript_analysis_json
+- processing_version
+
+## voc_topics
+Topicهای Normalized برای گزارش VOC:
+- topic_code
+- confidence
+- satisfaction
+- urgency
+- evidence
+
+## processing_events
+Trace مرحله‌ای ingest / text intelligence برای مانیتورینگ و بازیابی.
+
+## medical_lexicon_versions
+Version/SHA/Status برای واژه‌نامه فارسی پزشکی.
