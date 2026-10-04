@@ -27,6 +27,18 @@ export const OPERATIONAL_POLICY:Record<QcDomain,{version:string;title:string;con
    {id:'PH-OPS-09',label:'حداقل طول مکالمه',rule:'برای QC کامل مکالمه، آستانه عملیاتی ۸ دقیقه است؛ تماس کوتاه‌تر نیازمند دلیل و Review انسانی است.',source:'conversation',severity:'warning',autoAvailable:true}
   ]
  },
+ voc:{
+  version:'voc-ops-2026-10-04',
+  title:'کنترل‌های صدای کاربر (VOC)',
+  controls:[
+   {id:'VOC-OPS-01',label:'اتصال به هویت کاربر',rule:'هر Interaction باید به کاربر/شناسه خارجی معتبر یا حالت ناشناس کنترل‌شده متصل شود.',source:'external',severity:'warning',autoAvailable:false},
+   {id:'VOC-OPS-02',label:'موضوع تماس',rule:'حداقل یک Topic نسخه‌دار همراه Evidence متنی ثبت شود؛ Other نیازمند Review انسانی است.',source:'conversation',severity:'warning',autoAvailable:true},
+   {id:'VOC-OPS-03',label:'رضایت/عدم رضایت',rule:'Satisfaction فقط با Evidence متن یا Feedback ساختاریافته تعیین شود؛ Neutral/Mixed نیازمند Review است.',source:'conversation',severity:'warning',autoAvailable:true},
+   {id:'VOC-OPS-04',label:'Urgency',rule:'نشانه‌های شکایت فوری، خطر یا پیگیری فوری باید به صف Priority هدایت شوند.',source:'conversation',severity:'critical',autoAvailable:true},
+   {id:'VOC-OPS-05',label:'Root Cause',rule:'Root Cause قطعی فقط بعد از اتصال به داده عملیاتی/پرونده معتبر ثبت می‌شود و از Transcript به تنهایی حدس زده نمی‌شود.',source:'external',severity:'critical',autoAvailable:false},
+   {id:'VOC-OPS-06',label:'History',rule:'تاریخچه تماس‌های کاربر در بازه زمانی قابل Drill-down و Export باشد.',source:'external',severity:'info',autoAvailable:true}
+  ]
+ },
  sampler:{
   version:'sampler-ops-2026-09-21',
   title:'کنترل‌های عملیاتی نمونه‌گیران',
