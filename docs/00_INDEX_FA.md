@@ -1,3 +1,12 @@
+
+## معماری v2 / Oganson / Text Intelligence
+- `PRD_V2_OGANSON_TEXT_INTELLIGENCE_FA.md` — PRD و MVP.
+- `ARCHITECTURE_V2_LOCAL_SERVER_FA.md` — معماری سرور لوکال.
+- `OGANSON_INTEGRATION_CONTRACT_FA.md` — قرارداد ورودی Transcript.
+- `BENCHMARK_PERSIAN_MEDICAL_TEXT_V2_FA.md` — Benchmark فارسی/پزشکی.
+- `TEST_QC_V2_FA.md` — Test & QC Plan.
+- `../knowledge/TEXT_INTELLIGENCE_V2.json` — Snapshot ماشین‌خوان Knowledge Base.
+
 # کوله‌پشتی — فهرست مرجع فنی و Knowledge Base
 
 این پوشه **مرجع بازیابی، پیاده‌سازی مجدد و تحویل به تیم فنی/زیرساخت** است. هیچ Release نباید بدون به‌روزرسانی این Index و اسناد مرتبط نهایی شود.
