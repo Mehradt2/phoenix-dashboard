@@ -68,3 +68,24 @@ Frontend از `src/repository.ts` استفاده می‌کند:
 - Team runtime → این API
 
 QC Engine وابسته به Storage backend نیست.
+
+
+## v2 — Oganson / Text Intelligence / VOC
+### Ingest
+- `POST /api/integrations/oganson/transcripts`
+- Auth: `x-oganson-token`
+- Idempotency: `oganson + externalId`
+
+### Profiles
+- `GET /api/profiles/:domain?from=&to=&calendar=gregorian|jalali`
+- domain: physician | sampler | voc
+
+### Subject History
+- `GET /api/subjects/:id/history`
+
+### Export
+- `GET /api/exports/cases.csv?domain=&from=&to=&calendar=`
+- خروجی شامل تاریخ میلادی و شمسی است.
+
+### Case filter v2
+`GET /api/cases` اکنون `domain/person/status/from/to/calendar` را پشتیبانی می‌کند.
