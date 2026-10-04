@@ -83,3 +83,20 @@ Application image باید با SHA Git Tag شود. در صورت خطای Relea
 - `ghcr.io/mehradt2/kuleposhti-api:team-latest`
 
 برای استقرار قابل بازیابی Production، **از SHA tag همان Release استفاده کنید** و نه صرفاً `team-latest`.
+
+
+## v2 — سرویس Text Intelligence و Oganson
+Compose اکنون سرویس `text-intelligence:8090` دارد.
+API با `TEXT_INTELLIGENCE_URL=http://text-intelligence:8090` به آن وصل می‌شود.
+
+Secret لازم:
+`OGANSON_SHARED_SECRET`
+
+Health:
+- `/api/health` وضعیت DB و Text Intelligence را برمی‌گرداند.
+- Text service: `/health`
+
+مسیر Primary:
+`Oganson → /api/integrations/oganson/transcripts → Text Intelligence → PostgreSQL → Review`
+
+برای شبکه داخلی، Endpoint Oganson از اینترنت Public نشود. Oganson و KulePoshti بهتر است روی VLAN/Subnet داخلی با ACL محدود اجرا شوند.
