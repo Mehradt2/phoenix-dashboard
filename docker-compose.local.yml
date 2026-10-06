@@ -8,3 +8,9 @@ services:
       - "8088:80"
   caddy:
     profiles: ["tls"]
+
+  worker:
+    environment:
+      OGANESON_BASE_URL: ${OGANESON_BASE_URL:-http://host.docker.internal:7070}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
