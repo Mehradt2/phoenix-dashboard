@@ -119,7 +119,10 @@ def voc_analysis(text:str)->dict[str,Any]:
     scores.sort(key=lambda x:x[1],reverse=True)
     topic=scores[0][0] if scores else "other"
     topic_evidence=scores[0][2] if scores else []
-    neg=[x for x in DISSAT if x in text]; pos=[x for x in SAT if x in text]
+    neg=[x for x in DISSAT if x in text]
+    pos=[x for x in SAT if x in text]
+    if "ناراضی" in text:
+        pos=[x for x in pos if x!="راضی هستم"]
     if neg and not pos: sentiment="dissatisfied"
     elif pos and not neg: sentiment="satisfied"
     elif pos and neg: sentiment="mixed"
