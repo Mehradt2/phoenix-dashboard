@@ -339,7 +339,7 @@ export function analyzeVoc(input, options = {}) {
   let raw = 0;
   for (const x of positive) raw += x.negated ? -1 : 1;
   for (const x of negative) raw += x.negated ? 1 : -1;
-  const satisfaction = raw >= 2 ? 'satisfied' : raw <= -1 ? 'dissatisfied' : raw === 0 ? 'unknown' : 'neutral';
+  const explicitNegative=/(ناراضی|شکایت|اعتراض|افتضاح|خیلی بد)/.test(text),explicitPositive=/(کاملا راضی|کاملاً راضی|خیلی راضی|عالی بود|خیلی خوب بود)/.test(text);const satisfaction = explicitNegative ? 'dissatisfied' : explicitPositive ? 'satisfied' : raw >= 2 ? 'satisfied' : raw <= -1 ? 'dissatisfied' : raw === 0 ? 'unknown' : 'neutral';
   const confidence = Math.min(.95, .45 + Math.abs(raw) * .12);
 
   const resolved = /(حل شد|برطرف شد|انجام شد|پیگیری شد|اوکی شد)/.test(text);
