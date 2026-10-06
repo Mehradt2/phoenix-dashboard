@@ -5,6 +5,7 @@ RUN npm install --omit=dev
 COPY server/src ./src
 COPY server/migrations ./migrations
 COPY server/test ./test
+COPY knowledge ./knowledge
 USER node
 EXPOSE 8080
 HEALTHCHECK --interval=20s --timeout=4s --retries=4 CMD node -e "fetch('http://127.0.0.1:8080/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
