@@ -18,12 +18,23 @@ const NEG=['بد','ناراضی','افتضاح','اصلا راضی','اصلاً 
 
 function lexHits(t,words){
  const out=[];
+ const esc=s=>s.replace(/[.*+?^$(){}|[\]\\]/g,'\\function lexHits(t,words){
+ const out=[];
  for(const w of words){
   let from=0;
   while(true){
    const i=t.indexOf(w,from);if(i<0)break;
    if(!lexicalNegated(t,i))out.push({term:w,index:i});
    from=i+w.length;
+  }
+ }
+ return out;
+}');
+ for(const w of words){
+  const re=new RegExp('(^|[^\\p{L}\\p{N}])('+esc(w)+')(?=$|[^\\p{L}\\p{N}])','giu');
+  for(const m of t.matchAll(re)){
+   const i=(m.index||0)+m[1].length;
+   if(!lexicalNegated(t,i))out.push({term:w,index:i});
   }
  }
  return out;
