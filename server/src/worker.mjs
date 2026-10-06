@@ -41,7 +41,7 @@ async function persist(job,stt,analysis){
    [job.domain,subjectKey,job.subject_name,job.workflow_json?.subjectMeta||{}]
   );
   const subjectId=sr.rows[0].id;
-  const insertCase="insert into cases(id,domain,person_name,source_name,audio_sha256,duration_seconds,transcript_iv,transcript_cipher,stt_json,qc_json,status,created_by,updated_by,created_at,updated_at,occurred_at,person_meta,subject_id,subject_key,source_system,source_ref,nlp_json,transcription_job_id) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'needs_review',$11,$11,now(),now(),coalesce($12::date,current_date),$13,$14,$15,$16,$17,$18,$19,$20)";
+  const insertCase="insert into cases(id,domain,person_name,source_name,audio_sha256,duration_seconds,transcript_iv,transcript_cipher,stt_json,qc_json,status,created_by,updated_by,created_at,updated_at,occurred_at,person_meta,subject_id,subject_key,source_system,source_ref,nlp_json,transcription_job_id) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'needs_review',$11,$11,now(),now(),coalesce($12::date,current_date),$13,$14,$15,$16,$17,$18,$19)";
   await c.query(insertCase,[
     caseId,job.domain,job.subject_name,job.source_name,job.audio_sha256,
     Number(stt.durationSeconds||job.workflow_json?.durationSeconds||0),tr.iv,tr.cipher,
