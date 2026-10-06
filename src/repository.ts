@@ -1,7 +1,7 @@
 import*as vault from'./vault';import{apiUrl,isTeamMode,type TeamUser}from'./runtime';import type{CaseRecord,Review,AuditEvent}from'./vault';import{localCreateSampler,localListSamplers,type SamplerProfile}from'./samplerRegistry';
 
 async function api(path:string,init:RequestInit={}){
- const headers=new Headers(init.headers);if(init.body&&!headers.has('content-type'))headers.set('content-type','application/json');
+ const headers=new Headers(init.headers);const isForm=typeof FormData!=='undefined'&&init.body instanceof FormData;if(init.body&&!isForm&&!headers.has('content-type'))headers.set('content-type','application/json');
  const r=await fetch(apiUrl(path),{...init,headers,credentials:'include'});if(r.status===204)return null;
  const body=await r.json().catch(()=>({}));if(!r.ok)throw new Error(body?.error||`api_${r.status}`);return body
 }
@@ -19,7 +19,7 @@ export async function saveAiInsight(id:string,insight:any){if(!isTeamMode())retu
 export async function listAudit():Promise<AuditEvent[]>{if(!isTeamMode())return vault.listAudit();try{return(await api('/api/audit')).audit}catch{return[]}}
 export async function submitReview(id:string,decision:Review['decision'],workflow:number|null,note:string,workflowEvidence?:any){
  if(!isTeamMode())return vault.submitReview(id,decision,workflow,note,workflowEvidence);
- const c=await getCase(id);if(!c)throw new Error('پرونده پیدا نشد');const convRaw=c.qc?.conversationScore,nonScorable=c.domain==='physician'&&c.qc?.scoreStatus==='non_scorable';if(convRaw==null&&!nonScorable)throw new Error('Conversation Score معتبر نیست');
+ const c=await getCase(id);if(!c)throw new Error('پرونده پیدا نشد');const convRaw=c.qc?.conversationScore,nonScorable=c.domain==='physician'&&c.qc?.scoreStatus==='non_scorable',voc=c.domain==='voc';if(convRaw==null&&!nonScorable&&!voc)throw new Error('Conversation Score معتبر نیست');
  const conv=convRaw==null?null:Number(convRaw),final=c.domain==='sampler'?(conv==null||workflow==null?null:Math.round((conv*.7+workflow*.3)*10)/10):(conv==null?null:Math.round(conv*10)/10);if(c.domain==='sampler'&&(conv==null||workflow==null))throw new Error('Score نمونه‌گیر کامل نیست');
  await api('/api/cases/'+encodeURIComponent(id)+'/reviews',{method:'POST',body:JSON.stringify({decision,workflowScore:workflow,conversationScore:conv,finalScore:final,note,workflowEvidence})});
  return getCase(id)
@@ -33,3 +33,18 @@ export async function updateUser(id:string,input:{active:boolean;role?:TeamUser[
 
 export async function listSamplers():Promise<SamplerProfile[]>{if(!isTeamMode())return localListSamplers();return(await api('/api/samplers')).samplers}
 export async function createSampler(input:{name:string;grade:string;city:string}):Promise<SamplerProfile>{if(!isTeamMode())return localCreateSampler(input);return(await api('/api/samplers',{method:'POST',body:JSON.stringify(input)})).sampler}
+
+
+export type SttJob={id:string;domain:'physician'|'sampler'|'voc';subjectKey?:string|null;subjectName:string;sourceName:string;audioSha256:string;audioBytes:number;status:'queued'|'running'|'completed'|'failed'|'dead_letter';attempts:number;maxAttempts:number;resultCaseId?:string|null;lastError?:string|null;createdAt:string;startedAt?:string|null;completedAt?:string|null;provider?:any};
+export async function createSttJob(input:{file:File;domain:'physician'|'sampler'|'voc';subjectName:string;subjectKey?:string;occurredAt?:string;workflow?:any;sourceSystem?:string;sourceRef?:string}):Promise<SttJob>{
+ if(!isTeamMode())throw new Error('Oganeson STT فقط در Local/Team Runtime فعال است.');
+ const fd=new FormData();fd.append('file',input.file,input.file.name);fd.append('domain',input.domain);fd.append('subjectName',input.subjectName);if(input.subjectKey)fd.append('subjectKey',input.subjectKey);if(input.occurredAt)fd.append('occurredAt',input.occurredAt);fd.append('sourceSystem',input.sourceSystem||'operator_upload');if(input.sourceRef)fd.append('sourceRef',input.sourceRef);fd.append('workflow',JSON.stringify(input.workflow||{}));
+ return(await api('/api/stt/jobs',{method:'POST',body:fd})).job
+}
+export async function listSttJobs():Promise<SttJob[]>{if(!isTeamMode())return[];return(await api('/api/stt/jobs')).jobs}
+export async function getSttJob(id:string):Promise<SttJob>{if(!isTeamMode())throw new Error('team_mode_required');return(await api('/api/stt/jobs/'+encodeURIComponent(id))).job}
+export async function retrySttJob(id:string):Promise<void>{if(!isTeamMode())throw new Error('team_mode_required');await api('/api/stt/jobs/'+encodeURIComponent(id)+'/retry',{method:'POST'})}
+export async function analyzeTextRemote(domain:'physician'|'sampler'|'voc',text:string,options:any={}){if(!isTeamMode())throw new Error('team_mode_required');return(await api('/api/text/analyze',{method:'POST',body:JSON.stringify({domain,text,...options})})).analysis}
+export async function ingestTranscript(input:{domain:'physician'|'sampler'|'voc';subjectName:string;subjectKey?:string;transcript:string;segments?:any[];durationSeconds?:number;audioSha256?:string;sourceName?:string;sourceSystem?:string;sourceRef?:string;workflow?:any;occurredAt?:string;personMeta?:any}){if(!isTeamMode())throw new Error('team_mode_required');return api('/api/ingest/transcript',{method:'POST',body:JSON.stringify(input)})}
+export async function getSubjectProfile(domain:'physician'|'sampler'|'voc',subjectKey:string,from?:string,to?:string){if(!isTeamMode())return null;const qs=new URLSearchParams();if(from)qs.set('from',from);if(to)qs.set('to',to);return api('/api/profiles/'+domain+'/'+encodeURIComponent(subjectKey)+(qs.size?'?'+qs.toString():''))}
+export async function oganesonHealth(){if(!isTeamMode())return{ok:false,configured:false,error:'team_mode_required'};return api('/api/oganeson/health')}
