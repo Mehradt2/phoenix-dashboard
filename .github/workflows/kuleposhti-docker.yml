@@ -2,7 +2,7 @@ name: KulePoshti Team Docker
 
 on:
   push:
-    branches: [kuleposhti-operational-web-v1]
+    branches: [kuleposhti-operational-web-v1, kuleposhti-local-intelligence-v2]
     paths:
       - 'src/**'
       - 'server/**'
@@ -48,6 +48,7 @@ jobs:
           DATA_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
           BOOTSTRAP_ADMIN_EMAIL: qc-admin@example.org
           BOOTSTRAP_ADMIN_PASSWORD: CI-Strong-Passphrase-2026!
+          OGANSON_SHARED_TOKEN: ci-oganson-token-2026
         run: docker compose -f docker-compose.yml -f docker-compose.local.yml config >/tmp/kp-compose.yml
 
   integration:
@@ -63,6 +64,8 @@ jobs:
       BOOTSTRAP_ADMIN_EMAIL: qc-admin@example.org
       BOOTSTRAP_ADMIN_PASSWORD: CI-Strong-Passphrase-2026!
       KP_RELEASE: ci-${{ github.sha }}
+      OGANSON_SHARED_TOKEN: ci-oganson-token-2026
+      OGANSON_BASE_URL: http://host.docker.internal:9000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -93,6 +96,13 @@ jobs:
           curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/auth/me | grep -q 'qc-admin@example.org'
           curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/cases | grep -q '"cases"'
           curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/audit | grep -q '"audit"'
+      - name: Local Persian intelligence and Oganson ingest smoke
+        run: |
+          curl -fsS -b /tmp/kp.cookies -H 'Content-Type: application/json'             -d '{"domain":"voc","transcript":"خیلی ناراضی هستم، جواب آزمایش خیلی دیر شد و پشتیبانی پاسخ نداد."}'             http://localhost:8088/api/v2/intelligence/analyze | grep -q '"sentiment":"negative"'
+          curl -fsS -H 'Content-Type: application/json' -H 'x-oganson-token: ci-oganson-token-2026'             -d '{"external_id":"ci-oganson-1","domain":"sampler","subject":{"external_id":"s-ci","name":"نمونه‌گیر CI"},"transcript":"سلام وقت بخیر من نمونه گیر روبرا هستم. فردا ساعت 8 تا 9 خدمت می رسم. آدرس خیابان آزادی کوچه ده پلاک 12 را تایید کنید. برای آزمایش ناشتا باشید و آب ساده مجاز است. سوالی دارید؟ ممنون.","occurred_at":"2026-10-07T10:00:00+03:30","confidence":0.93}'             http://localhost:8088/api/v2/integrations/oganson/ingest | grep -q '"duplicate":false'
+          curl -fsS -b /tmp/kp.cookies 'http://localhost:8088/api/v2/interactions?domain=sampler&fromJalali=1405-07-15&toJalali=1405-07-15' | grep -q 'نمونه‌گیر CI'
+          curl -fsS -b /tmp/kp.cookies 'http://localhost:8088/api/v2/profiles?domain=sampler' | grep -q 'نمونه‌گیر CI'
+          curl -fsS -b /tmp/kp.cookies 'http://localhost:8088/api/v2/export.csv?domain=sampler&from=2026-10-07&to=2026-10-07' | grep -q 'sampler'
       - name: Runtime config is Team Mode
         run: curl -fsS http://localhost:8088/runtime-config.js | grep -q 'mode:"team"'
       - name: Team browser E2E
