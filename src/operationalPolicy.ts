@@ -1,6 +1,6 @@
 import type{QcDomain}from'./domain';
 
-export const POLICY_RELEASE='qc-online-v1.2.0';
+export const POLICY_RELEASE='qc-local-text-v3.0.0-candidate';
 
 export type OperationalControl={
  id:string;
@@ -25,6 +25,18 @@ export const OPERATIONAL_POLICY:Record<QcDomain,{version:string;title:string;con
    {id:'PH-OPS-07',label:'تست‌های طلایی',rule:'کنترل تست‌های طلایی باید از لیست زرد نسخه‌دار استفاده کند؛ حداقل ۴ و حداکثر ۶ مورد. تا اتصال لیست مصوب Auto-score ممنوع است.',source:'external',severity:'critical',autoAvailable:false},
    {id:'PH-OPS-08',label:'تماس بسیار کوتاه',rule:'تماس‌های کمتر از ۲۰ ثانیه اگر بیش از یک مورد در ماه باشند باید در پرونده فردی Neutral/Investigate علامت‌گذاری شوند، نه اینکه کیفیت جعلی بسازند.',source:'external',severity:'warning',autoAvailable:true},
    {id:'PH-OPS-09',label:'حداقل طول مکالمه',rule:'برای QC کامل مکالمه، آستانه عملیاتی ۸ دقیقه است؛ تماس کوتاه‌تر نیازمند دلیل و Review انسانی است.',source:'conversation',severity:'warning',autoAvailable:true}
+  ]
+ },
+ voc:{
+  version:'voc-ops-2026-10-07',
+  title:'کنترل‌های عملیاتی صدای کاربر',
+  controls:[
+   {id:'VOC-OPS-01',label:'موضوع تماس',rule:'هر تعامل VOC باید حداقل یک Topic اصلی نسخه‌دار و Evidence متنی داشته باشد؛ در Confidence پایین Human Review الزامی است.',source:'conversation',severity:'warning',autoAvailable:true},
+   {id:'VOC-OPS-02',label:'رضایت/نارضایتی',rule:'Satisfaction از متن به‌صورت Evidence-first استخراج می‌شود؛ Unknown نباید به Neutral تبدیل شود.',source:'conversation',severity:'warning',autoAvailable:true},
+   {id:'VOC-OPS-03',label:'وضعیت حل مسئله',rule:'Resolved/Unresolved فقط با Evidence صریح ثبت می‌شود؛ نبود Evidence = Unknown.',source:'conversation',severity:'warning',autoAvailable:true},
+   {id:'VOC-OPS-04',label:'ایمنی و Escalation',rule:'عبارات Safety/Risk صرفاً Trigger بازبینی فوری هستند و تشخیص پزشکی تولید نمی‌کنند.',source:'conversation',severity:'critical',autoAvailable:true},
+   {id:'VOC-OPS-05',label:'پرونده و History کاربر',rule:'تعاملات باید با شناسه پایدار کاربر به History متصل شوند؛ شماره تماس خام به‌عنوان کلید اصلی توصیه نمی‌شود.',source:'external',severity:'warning',autoAvailable:false},
+   {id:'VOC-OPS-06',label:'تفکیک Root Cause',rule:'Topic اصلی، Topicهای کاندید و Evidence باید برای Drill-down مدیریتی ذخیره شوند.',source:'conversation',severity:'warning',autoAvailable:true}
   ]
  },
  sampler:{
