@@ -314,6 +314,8 @@ function sentimentHits(text, words) {
     const w = normalizeFa(word), idx = text.indexOf(w);
     if (idx < 0) continue;
     const left = text.slice(Math.max(0, idx - 25), idx);
+    const prefix = text.slice(Math.max(0, idx - 2), idx);
+    if (w === 'راضی' && prefix === 'نا') continue;
     const negated = /(نیستم|نیست|نبود|نشد|نه |نمی)/.test(left);
     out.push({ word: w, start: idx, evidence: contextWindow(text, idx, idx + w.length), negated });
   }
