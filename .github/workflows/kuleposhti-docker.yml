@@ -41,6 +41,8 @@ jobs:
           npm test
           node --check src/index.mjs
           node --check src/migrate.mjs
+          node --check src/intelligenceApi.mjs
+          node --check src/oganson.mjs
       - name: Compose config
         env:
           DOMAIN: localhost
