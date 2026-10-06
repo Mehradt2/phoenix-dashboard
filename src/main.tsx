@@ -67,6 +67,7 @@ function App(){
   return true
  }),[xs,reportName,reportDate,reportMonth]);
  const reportStats=useMemo(()=>executive(reportCases,domain),[reportCases,domain]),reportTrend=useMemo(()=>weeklyTrend(reportCases,domain),[reportCases,domain]),reportRisks=useMemo(()=>riskDistribution(reportCases,domain),[reportCases,domain]),reportFailures=useMemo(()=>pareto(reportCases,domain),[reportCases,domain]),reportBaseProfiles=useMemo(()=>people(reportCases,domain),[reportCases,domain]);
+ const reportVocStats=useMemo(()=>vocExecutive(reportCases),[reportCases]),reportVocTopics=useMemo(()=>vocTopicPareto(reportCases),[reportCases]),reportVocSatisfaction=useMemo(()=>satisfactionDistribution(reportCases),[reportCases]);
  const displayProfiles=useMemo(()=>domain==='sampler'?mergeSamplerProfiles(profiles,samplers):profiles,[domain,profiles,samplers]);
  const reportProfiles=useMemo(()=>domain==='sampler'?mergeSamplerProfiles(reportBaseProfiles,samplers):reportBaseProfiles,[domain,reportBaseProfiles,samplers]);
  const monthOptions=useMemo(()=>[...new Map(xs.map(x=>{const d=caseDate(x);return[persianMonthKey(d),persianMonthLabel(d)] as const}).filter(x=>x[0])).entries()], [xs]);
