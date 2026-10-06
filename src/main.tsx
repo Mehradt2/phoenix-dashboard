@@ -3,7 +3,7 @@ import{createRoot}from'react-dom/client';
 import{Activity,BarChart3,BrainCircuit,ChevronLeft,ClipboardCheck,Database,Download,Eye,FileAudio,Home,Lock,Menu,MessageCircle,Play,RefreshCw,Search,Settings,ShieldCheck,Square,Stethoscope,Trash2,Upload,Users,UserRoundSearch,X}from'lucide-react';
 import{sha256File,transcribe,modelStatus,setModelMode,warmModel}from'./asr';
 import{getMode,requestPersistentStorage,type ModelMode}from'./modelPolicy';
-import{putCase,listCases,getCase,existsHash,submitReview,deleteCase,exportBackup,importBackup,listAudit,saveAiInsight,session,login,logout,localVault,listUsers,createUser,updateUser,listSamplers,createSampler,createSttJob,getSttJob,oganesonHealth}from'./repository';
+import{putCase,listCases,getCase,existsHash,submitReview,deleteCase,exportBackup,importBackup,listAudit,saveAiInsight,session,login,logout,localVault,listUsers,createUser,updateUser,listSamplers,createSampler,createSttJob,getSttJob,oganesonHealth,ingestTranscript}from'./repository';
 import{isTeamMode,RUNTIME,type TeamUser}from'./runtime';
 import type{CaseRecord,AuditEvent}from'./vault';
 import{scoreGold,type GoldCase}from'./qualityGate';
@@ -80,8 +80,62 @@ function App(){
  function patch(k:string,p:Partial<Row>){setRows(r=>r.map(x=>x.key===k?{...x,...p}:x))}
  function evaluate(text:string,durationSeconds=0){return domain==='sampler'?evaluateConversation(text):domain==='physician'?evaluatePhysician(text,durationSeconds):evaluateVoc(text)}
  async function saveFromText(row:Row,hash:string,text:string,stt:any){const personName=(row.personName||person).trim();if(!personName)throw new Error(`نام ${meta.personLabel} خالی است`);if(!text.trim())throw new Error('Transcript خالی است');if(await existsHash(hash))throw new Error('فایل تکراری است');const now=new Date().toISOString(),sampler=domain==='sampler'?samplerByName(samplers,personName):null;if(domain==='sampler'&&!sampler)throw new Error('نمونه‌گیر در فهرست فعال نیست؛ ابتدا او را به فهرست اضافه کنید.');const rec:CaseRecord={id:crypto.randomUUID(),domain,personName,sourceName:row.file.name,audioSha256:hash,durationSeconds:Number(stt.durationSeconds||0),transcript:text.trim(),stt,qc:evaluate(text,Number(stt.durationSeconds||0)),status:'needs_review',reviews:[],occurredAt:(row.occurredAt||callDate||isoToday()).slice(0,10),personMeta:sampler?{samplerId:sampler.id,grade:sampler.grade,city:sampler.city}:undefined,createdAt:now,updatedAt:now};await putCase(rec)}
- async function run(){if(!rows.length||busy)return;stop.current=false;setBusy(true);setMsg('');let success=0,failed=0;const stage=(p:any)=>{const labels:any={decode:'Decode صوت','decode-ready':'Decode آماده','model-load-start':'بارگیری مدل','model-loading':'بارگیری مدل','model-ready':'مدل آماده','model-fallback':'Fallback مدل','transcribe-start':'تبدیل گفتار به متن','transcribe-done':'Transcript آماده'};return(labels[p.status]||p.status)+(p.progress!=null?' '+Math.round(p.progress)+'%':'')};try{setProgress('آماده‌سازی مدل…');await warmModel(mode,p=>setProgress((p.model?p.model+' · ':'')+stage(p)));for(const row of rows){if(stop.current)break;if(row.status==='done')continue;try{const name=(row.personName||person).trim();if(!name)throw new Error(`نام ${meta.personLabel} خالی است`);patch(row.key,{status:'running',message:'محاسبه Hash'});const hash=await sha256File(row.file);if(await existsHash(hash))throw new Error('فایل تکراری است');const stt=await transcribe(row.file,p=>{const label=stage(p);setProgress((p.model?p.model+' · ':'')+label);patch(row.key,{message:label})},mode);if(stt.noSpeech)throw new Error('سکوت/عدم گفتار');if(stt.text.trim().length<10)throw new Error('Transcript ناکافی؛ از Transcript دستی استفاده کنید.');await saveFromText(row,hash,stt.text,stt);success++;patch(row.key,{status:'done',message:'QC ساخته شد · آماده Review'})}catch(e:any){failed++;patch(row.key,{status:'failed',message:(e.message||'خطا')+' · امکان Transcript دستی'})}}}catch(e:any){const message=e?.message||'مدل آماده نشد';setRows(r=>r.map(x=>x.status==='done'?x:{...x,status:'failed',message:message+' · Transcript دستی در دسترس است'}));failed=rows.filter(x=>x.status!=='done').length}finally{setBusy(false);setProgress('');await load();if(success>0){setTab('review');setMsg(`${fa.format(success)} پرونده ساخته شد و وارد صف Review شد${failed?' · '+fa.format(failed)+' فایل نیازمند اقدام دستی/Retry است':''}.`)}else if(stop.current)setMsg('پردازش متوقف شد و هیچ پرونده جدیدی ساخته نشد.');else setMsg('هیچ پرونده‌ای ساخته نشد؛ خطای هر فایل را در صف ببینید و Retry یا Transcript دستی را اجرا کنید.')}}
- async function manual(row:Row){const text=prompt('Transcript دستی این فایل را وارد کنید:',row.manualText||'');if(!text)return;try{const hash=await sha256File(row.file);await saveFromText(row,hash,text,{device:'manual',modelId:'manual',durationSeconds:0});patch(row.key,{status:'done',message:'ثبت دستی · آماده Review'});await load();setTab('review');setMsg('Transcript دستی ثبت و QC ساخته شد.')}catch(e:any){setMsg(e.message)}}
+ async function run(){if(!rows.length||busy)return;stop.current=false;setBusy(true);setMsg('');let success=0,failed=0;
+  const stage=(p:any)=>{const labels:any={decode:'Decode صوت','decode-ready':'Decode آماده','model-load-start':'بارگیری مدل','model-loading':'بارگیری مدل','model-ready':'مدل آماده','model-fallback':'Fallback مدل','transcribe-start':'تبدیل گفتار به متن','transcribe-done':'Transcript آماده'};return(labels[p.status]||p.status)+(p.progress!=null?' '+Math.round(p.progress)+'%':'')};
+  try{
+   if(isTeamMode()){
+    if(domain==='voc'&&!subjectKey.trim())throw new Error('برای VOC، شناسه پایدار کاربر الزامی است.');
+    if(!oganeson?.ok)throw new Error('Oganeson Local آماده نیست؛ وضعیت سرویس را در سیستم و بازیابی بررسی کنید.');
+    const jobs:{row:Row;jobId:string}[]=[];
+    setProgress('ارسال امن به صف Oganeson محلی…');
+    for(const row of rows){
+     if(stop.current)break;if(row.status==='done')continue;
+     try{
+      const name=(row.personName||person).trim();if(!name)throw new Error(`نام ${meta.personLabel} خالی است`);
+      if(domain==='sampler'&&!samplerByName(samplers,name))throw new Error('نمونه‌گیر در فهرست فعال نیست.');
+      patch(row.key,{status:'running',message:'در حال ورود به صف Oganeson'});
+      const job=await createSttJob({file:row.file,domain,subjectName:name,subjectKey:(row.subjectKey||subjectKey||'').trim()||undefined,occurredAt:row.occurredAt||callDate,sourceSystem:'qc_operator_upload'});
+      jobs.push({row,jobId:job.id});patch(row.key,{jobId:job.id,status:'running',message:'در صف تبدیل صوت به متن'});
+     }catch(e:any){failed++;patch(row.key,{status:'failed',message:e.message||'خطا در ایجاد Job'})}
+    }
+    const pending=new Map(jobs.map(x=>[x.jobId,x.row]));
+    const deadline=Date.now()+20*60_000;
+    while(pending.size&&Date.now()<deadline&&!stop.current){
+     setProgress(`Oganeson · ${fa.format(pending.size)} فایل در حال پردازش`);
+     for(const [jobId,row] of [...pending]){
+      try{
+       const job=await getSttJob(jobId);
+       patch(row.key,{message:job.status==='running'?'Oganeson در حال پردازش':job.status==='queued'?'در صف Oganeson':job.status});
+       if(job.status==='completed'){success++;pending.delete(jobId);patch(row.key,{status:'done',message:'Transcript + QC ساخته شد · آماده Review'})}
+       else if(job.status==='dead_letter'||job.status==='failed'){failed++;pending.delete(jobId);patch(row.key,{status:'failed',message:job.lastError||'پردازش Oganeson ناموفق'})}
+      }catch(e:any){patch(row.key,{message:'در حال بازیابی وضعیت Job…'})}
+     }
+     if(pending.size)await new Promise(r=>setTimeout(r,1600));
+    }
+    if(pending.size){for(const[,row]of pending){failed++;patch(row.key,{status:'failed',message:stop.current?'توقف توسط اپراتور':'Timeout پردازش؛ Job روی سرور حفظ شده است.'})}}
+   }else{
+    setProgress('آماده‌سازی مدل Browser Local…');await warmModel(mode,p=>setProgress((p.model?p.model+' · ':'')+stage(p)));
+    for(const row of rows){if(stop.current)break;if(row.status==='done')continue;try{
+     const name=(row.personName||person).trim();if(!name)throw new Error(`نام ${meta.personLabel} خالی است`);
+     if(domain==='voc'&&!(row.subjectKey||subjectKey).trim())throw new Error('شناسه پایدار کاربر برای VOC الزامی است.');
+     patch(row.key,{status:'running',message:'محاسبه Hash'});const hash=await sha256File(row.file);if(await existsHash(hash))throw new Error('فایل تکراری است');
+     const stt=await transcribe(row.file,p=>{const label=stage(p);setProgress((p.model?p.model+' · ':'')+label);patch(row.key,{message:label})},mode);
+     if(stt.noSpeech)throw new Error('سکوت/عدم گفتار');if(stt.text.trim().length<10)throw new Error('Transcript ناکافی؛ از Transcript دستی استفاده کنید.');
+     await saveFromText(row,hash,stt.text,stt);success++;patch(row.key,{status:'done',message:'QC ساخته شد · آماده Review'})
+    }catch(e:any){failed++;patch(row.key,{status:'failed',message:(e.message||'خطا')+' · امکان Transcript دستی'})}}
+   }
+  }catch(e:any){const message=e?.message||'پردازش آماده نشد';setRows(r=>r.map(x=>x.status==='done'?x:{...x,status:'failed',message}));failed=Math.max(failed,rows.filter(x=>x.status!=='done').length)}
+  finally{setBusy(false);setProgress('');await load();if(success>0){setTab('review');setMsg(`${fa.format(success)} پرونده ساخته شد و وارد صف Review شد${failed?' · '+fa.format(failed)+' فایل نیازمند Retry/بررسی است':''}.`)}else if(stop.current)setMsg('پردازش متوقف شد؛ Jobهای ثبت‌شده روی سرور قابل بازیابی‌اند.');else setMsg('هیچ پرونده‌ای ساخته نشد؛ وضعیت Oganeson و خطای هر فایل را بررسی کنید.')}}
+ async function manual(row:Row){const text=prompt('Transcript دستی/خروجی Oganeson را وارد کنید:',row.manualText||'');if(!text)return;try{
+  const name=(row.personName||person).trim();if(!name)throw new Error(`نام ${meta.personLabel} خالی است`);
+  if(domain==='voc'&&!(row.subjectKey||subjectKey).trim())throw new Error('شناسه پایدار کاربر برای VOC الزامی است.');
+  if(isTeamMode()){
+   await ingestTranscript({domain,subjectName:name,subjectKey:(row.subjectKey||subjectKey||'').trim()||undefined,transcript:text,sourceName:row.file.name,sourceSystem:'manual_or_oganeson_text',occurredAt:row.occurredAt||callDate});
+  }else{
+   const hash=await sha256File(row.file);await saveFromText(row,hash,text,{device:'manual',modelId:'manual',durationSeconds:0});
+  }
+  patch(row.key,{status:'done',message:'Transcript ثبت شد · آماده Review'});await load();setTab('review');setMsg('Transcript ثبت و تحلیل متنی ساخته شد.');
+ }catch(e:any){setMsg(e.message)}}
  async function review(dec:'approved'|'referred'|'overridden'){if(!selected||!note.trim())return setMsg('یادداشت Reviewer الزامی است.');let workflow:number|null=null,evidence:any=undefined;if(selected.domain==='sampler'){if(selected.qc?.criticalFailures?.length&&dec==='approved')return setMsg('Critical Failure باز است؛ ارجاع یا Override مستند لازم است.');const w=scoreWorkflow({...wf,reviewerNote:note});if(w.issues.length&&dec==='approved')return setMsg('Workflow Evidence ناقص است: '+w.issues.join(' | '));workflow=w.workflowScore;evidence={...wf,reviewerNote:note,policyVersion:w.policyVersion,issues:w.issues}}else{const latest=evaluatePhysician(selected.transcript,Number(selected.durationSeconds||0),{...physWf,reviewerNote:note}),p=scorePhysicianWorkflow({...physWf,reviewerNote:note});if(dec==='approved'&&p.issues.length)return setMsg('کنترل‌های پزشک/PVQ ناقص است: '+p.issues.join(' | '));if(dec==='approved'&&latest.criticalFailures.length)return setMsg('Critical Rule باز است: '+latest.criticalFailures.join('، ')+'؛ ارجاع یا Override مستند لازم است.');if(dec==='approved'&&latest.reviewGates.length)return setMsg('Human Review Gate باز است: '+latest.reviewGates.join('، ')+'؛ Evidence را کامل یا Override مستند ثبت کنید.');evidence={...physWf,reviewerNote:note,policyVersion:p.policyVersion,ruleCatalog:p.ruleCatalog,issues:p.issues};await putCase({...selected,qc:latest,updatedAt:new Date().toISOString()})}await submitReview(selected.id,dec,workflow,note,evidence);setSelected(null);setNote('');setWf(emptyWorkflow);setPhysWf(emptyPhysicianWorkflow);await load();setMsg('Review، Evidence نسخه‌دار و Audit ثبت شد.')}
  async function aiAssist(){if(!selected)return;setAiBusy(true);try{setMsg('AI محلی در حال تحلیل است؛ نتیجه فقط Copilot است و امتیاز را تغییر نمی‌دهد.');const insight=await localQcCopilot(selected.transcript,selected.domain,s=>setMsg(s),selected.qc);await saveAiInsight(selected.id,insight);setSelected({...selected,aiInsight:insight});await load();setMsg('تحلیل AI محلی ذخیره شد.')}catch(e:any){setMsg('AI محلی آماده نشد: '+(e.message||e))}finally{setAiBusy(false)}}
  function csv(){const h=['Domain','Person','Grade','City','Date','PersianDate','Day','Month','File','Status','Conversation','Workflow','Final','Risk','CreatedAt'];const lines=[h.join(','),...reportCases.map(x=>{const d=caseDate(x),s=domain==='sampler'?samplerByName(samplers,x.personName):null;return[x.domain,x.personName,x.personMeta?.grade||s?.grade||'',x.personMeta?.city||s?.city||'',d,persianDateLabel(d),persianDayLabel(d),persianMonthLabel(d),x.sourceName,x.status,x.qc?.conversationScore??'',x.qc?.workflowScore??'',x.qc?.finalScore??'',x.qc?.risk??'',x.createdAt].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')})];download(new Blob(['\ufeff'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),`kuleposhti-${domain}-${reportMonth||reportDate||'all'}-report.csv`)}
