@@ -1,0 +1,186 @@
+name: KulePoshti Local NLP v3
+
+on:
+  push:
+    branches: [kuleposhti-local-nlp-v3]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Frontend checks
+        run: |
+          npm install
+          npm run check
+          npm test
+          npm run build
+      - name: API + Persian text core checks
+        working-directory: server
+        run: |
+          npm install
+          npm test
+          node --check src/index.mjs
+          node --check src/worker.mjs
+          node --check src/oganeson.mjs
+          node --check src/audio-spool.mjs
+          node --check src/text-core.mjs
+          node --check src/case-service.mjs
+      - name: Docker compose contract
+        env:
+          DOMAIN: localhost
+          POSTGRES_PASSWORD: ci-postgres-password-2026
+          DATA_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+          BOOTSTRAP_ADMIN_EMAIL: qc-admin@example.org
+          BOOTSTRAP_ADMIN_PASSWORD: CI-Strong-Passphrase-2026!
+          OGANESON_BASE_URL: http://host.docker.internal:7070
+        run: docker compose -f docker-compose.yml -f docker-compose.local.yml config >/tmp/kp-v3-compose.yml
+
+  integration:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      DOMAIN: localhost
+      POSTGRES_DB: kuleposhti
+      POSTGRES_USER: kuleposhti
+      POSTGRES_PASSWORD: ci-postgres-password-2026
+      DATA_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+      BOOTSTRAP_ADMIN_EMAIL: qc-admin@example.org
+      BOOTSTRAP_ADMIN_PASSWORD: CI-Strong-Passphrase-2026!
+      OGANESON_BASE_URL: http://host.docker.internal:7070
+      KP_RELEASE: v3-ci-${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install frontend smoke dependencies
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+      - name: Start deterministic local Oganeson mock
+        run: |
+          node server/test/mock-oganeson.mjs >/tmp/mock-oganeson.log 2>&1 &
+          echo $! >/tmp/mock-oganeson.pid
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:7070/health && exit 0; sleep 1; done
+          cat /tmp/mock-oganeson.log
+          exit 1
+      - name: Build and start local-server stack
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.local.yml build api web migrate worker
+          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d db
+          docker compose -f docker-compose.yml -f docker-compose.local.yml run --rm migrate
+          docker compose -f docker-compose.yml -f docker-compose.local.yml up -d api web worker
+      - name: Wait for runtime
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8088/healthz >/dev/null && curl -fsS http://localhost:8088/api/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          docker compose -f docker-compose.yml -f docker-compose.local.yml logs --tail=250
+          exit 1
+      - name: Login
+        run: |
+          curl -fsS -c /tmp/kp.cookies -H 'Content-Type: application/json' \
+            -d '{"email":"qc-admin@example.org","password":"CI-Strong-Passphrase-2026!"}' \
+            http://localhost:8088/api/auth/login | grep -q '"role":"admin"'
+      - name: Oganeson health through KulePoshti
+        run: curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/oganeson/health | grep -q '"ok":true'
+      - name: Physician audio to Oganeson to Persian NLP to profile E2E
+        shell: bash
+        run: |
+          printf 'RIFF_KULEPOSHTI_CI_AUDIO' >/tmp/doctor.wav
+          BODY="$(curl -fsS -b /tmp/kp.cookies \
+            -F 'file=@/tmp/doctor.wav;type=audio/wav' \
+            -F 'domain=physician' \
+            -F 'subjectName=CI Doctor' \
+            -F 'subjectKey=doctor-ci-001' \
+            -F 'occurredAt=2026-10-07' \
+            http://localhost:8088/api/stt/jobs)"
+          JOB="$(printf '%s' "$BODY" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).job.id))")"
+          test -n "$JOB"
+          OK=0
+          for i in $(seq 1 50); do
+            J="$(curl -fsS -b /tmp/kp.cookies http://localhost:8088/api/stt/jobs/$JOB)"
+            printf '%s' "$J" | grep -q '"status":"completed"' && { OK=1; break; }
+            printf '%s' "$J" | grep -q '"status":"dead_letter"' && { echo "$J"; break; }
+            sleep 1
+          done
+          test "$OK" -eq 1
+          curl -fsS -b /tmp/kp.cookies 'http://localhost:8088/api/profiles/physician/doctor-ci-001?from=2026-10-01&to=2026-10-31' >/tmp/profile.json
+          grep -q '"displayName":"CI Doctor"' /tmp/profile.json
+          grep -q '"diabetes"' /tmp/profile.json
+          grep -q '"clopidogrel"' /tmp/profile.json
+      - name: VOC Persian topic satisfaction API E2E
+        run: |
+          curl -fsS -b /tmp/kp.cookies -H 'Content-Type: application/json' \
+            -d '{"domain":"voc","text":"خیلی ناراضی هستم، نمونه گیر هنوز نرسیده و تاخیر دارد و کسی هم پیگیری نکرده"}' \
+            http://localhost:8088/api/text/analyze >/tmp/voc.json
+          grep -q '"sampler_delay"' /tmp/voc.json
+          grep -q '"dissatisfied"' /tmp/voc.json
+          grep -q '"unresolved"' /tmp/voc.json
+      - name: Team browser navigation
+        env:
+          KP_TEAM_URL: http://localhost:8088
+          KP_TEAM_EMAIL: qc-admin@example.org
+          KP_TEAM_PASSWORD: CI-Strong-Passphrase-2026!
+        run: node scripts/team-browser-smoke.mjs
+      - name: Logs on failure
+        if: failure()
+        run: |
+          cat /tmp/mock-oganeson.log || true
+          docker compose -f docker-compose.yml -f docker-compose.local.yml logs --tail=300
+      - name: Shutdown
+        if: always()
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.local.yml down -v
+          kill $(cat /tmp/mock-oganeson.pid) 2>/dev/null || true
+
+  publish:
+    needs: integration
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - {name: web, file: docker/web/Dockerfile}
+          - {name: api, file: docker/api/Dockerfile}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.target.file }}
+          push: true
+          tags: |
+            ghcr.io/mehradt2/kuleposhti-${{ matrix.target.name }}:v3-candidate
+            ghcr.io/mehradt2/kuleposhti-${{ matrix.target.name }}:v3-${{ github.sha }}
+
+  recovery:
+    needs: integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package exact v3 source docs and Docker
+        run: |
+          zip -qr "KulePoshti_Local_NLP_v3_${GITHUB_SHA}.zip" . -x ".git/*"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kuleposhti-local-nlp-v3-${{ github.sha }}
+          path: KulePoshti_Local_NLP_v3_${{ github.sha }}.zip
+          retention-days: 90
