@@ -15,8 +15,8 @@ export function extractMedicalEntities(text){
    for(const m of t.matchAll(re))entities.push({type,value:m[2],start:(m.index||0)+m[1].length,end:(m.index||0)+m[0].length});
   }
  }
- const dose=/\b(\d+(?:[./]\d+)?)\s*(میلی ?گرم|mg|گرم|g|واحد|unit|سی ?سی|ml)\b/giu;
- for(const m of t.matchAll(dose))entities.push({type:'dose',value:m[0],start:m.index||0,end:(m.index||0)+m[0].length});
+ const dose=/(^|[^\\p{L}\\p{N}])(\\d+(?:[./]\\d+)?\\s*(?:میلی ?گرم|mg|گرم|g|واحد|unit|سی ?سی|ml))(?=$|[^\\p{L}\\p{N}])/giu;
+ for(const m of t.matchAll(dose)){const start=(m.index||0)+m[1].length;entities.push({type:'dose',value:m[2],start,end:start+m[2].length})}
  return entities.sort((a,b)=>a.start-b.start);
 }
 export const MEDICAL_LEXICON_VERSION='fa-medical-lexicon-0.1.0';
