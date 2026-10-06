@@ -24,6 +24,13 @@
    - Production Evidence مستقل لازم دارد.
 
 ## اسناد اصلی
+- `LOCAL_INTELLIGENCE_V2_ARCHITECTURE_FA.md` — معماری یکپارچه Oganson → Text Intelligence → Profiles/VOC.
+- `PRD_LOCAL_INTELLIGENCE_V2_FA.md` — PRD و MVP نسخه v2.
+- `BENCHMARK_PERSIAN_TEXT_INTELLIGENCE_FA.md` — Benchmark و استراتژی مدل‌های فارسی/محلی.
+- `OGANSON_INTEGRATION_CONTRACT_FA.md` — قرارداد اتصال سرویس محلی Oganson.
+- `TEXT_INTELLIGENCE_QA_PLAN_FA.md` — Gold/QA و Release Gateهای فارسی.
+- `LOCAL_SERVER_MIGRATION_V2_FA.md` — Runbook استقرار Docker روی سرور داخلی.
+
 - `CURRENT_RELEASE_STATUS_FA.md` — وضعیت Release و Evidence جاری.
 - `QC_OPERATOR_QUICKSTART_FA.md` — راهنمای شروع سریع اپراتور QC.
 - `TECH_HANDOFF_CHECKLIST_FA.md` — چک‌لیست تحویل به مهندسی و زیرساخت.
