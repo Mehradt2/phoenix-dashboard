@@ -35,3 +35,18 @@ export function individualProfile(cases:CaseRecord[],domain:QcDomain,name:string
  const sampleFlag=nScored<5?'نمونه کم':nScored<10?'قابل نمایش UAT؛ مقایسه محدود':'حجم مناسب برای تحلیل دوره‌ای';
  return{name,total:rows.length,scored:nScored,nonScorable,avg,reviewOpen,reviewRate:rows.length?Math.round(reviewOpen/rows.length*1000)/10:0,criticalCalls,criticalRate:nScored?Math.round(criticalCalls/nScored*1000)/10:0,ruleCompliance,sampleFlag,samplePolicy:'آستانه‌های ۵/۱۰ فعلاً UAT پیشنهادی‌اند و Policy نهایی نیستند.'}
 }
+
+
+export function vocExecutive(cases:CaseRecord[]){
+ const xs=filtered(cases,'voc'),dissatisfied=xs.filter(x=>(x.nlp??x.qc)?.satisfaction?.label==='dissatisfied'),resolved=xs.filter(x=>(x.nlp??x.qc)?.resolution==='resolved'),unresolved=xs.filter(x=>(x.nlp??x.qc)?.resolution==='unresolved'),urgent=xs.filter(x=>(x.nlp??x.qc)?.requiresUrgentHumanReview),review=xs.filter(x=>x.status==='needs_review');
+ return{volume:xs.length,dissatisfiedRate:xs.length?Math.round(dissatisfied.length/xs.length*1000)/10:0,resolvedRate:xs.length?Math.round(resolved.length/xs.length*1000)/10:0,unresolved:unresolved.length,urgent:urgent.length,reviewOpen:review.length}
+}
+export function vocTopicPareto(cases:CaseRecord[]){
+ const xs=filtered(cases,'voc'),m=new Map<string,{id:string;label:string;count:number}>();
+ for(const c of xs){const a=c.nlp??c.qc,t=a?.topic;if(!t?.id)continue;const cur=m.get(t.id)||{id:t.id,label:t.label||t.id,count:0};cur.count++;m.set(t.id,cur)}
+ return[...m.values()].sort((a,b)=>b.count-a.count).slice(0,12)
+}
+export function satisfactionDistribution(cases:CaseRecord[]){
+ const xs=filtered(cases,'voc'),o={satisfied:0,neutral:0,dissatisfied:0,unknown:0};
+ for(const c of xs){const s=(c.nlp??c.qc)?.satisfaction?.label;if(s&&s in o)(o as any)[s]++;else o.unknown++}return o
+}
