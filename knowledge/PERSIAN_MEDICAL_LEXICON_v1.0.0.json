@@ -1,0 +1,548 @@
+{
+  "version": "persian-medical-lexicon-1.0.0",
+  "language": "fa",
+  "notes": "Seed lexicon for Persian medical-call normalization. Extend only through versioned review; aliases are normalization aids, not clinical inference.",
+  "entities": [
+    {
+      "type": "drug",
+      "canonical": "insulin",
+      "fa": "انسولین",
+      "aliases": [
+        "انسولین",
+        "انسولين"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "clopidogrel",
+      "fa": "کلوپیدوگرل",
+      "aliases": [
+        "کلوپیدوگرل",
+        "پلاویکس",
+        "پلویکس",
+        "پلاويکس"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "losartan",
+      "fa": "لوزارتان",
+      "aliases": [
+        "لوزارتان",
+        "لوسارتان",
+        "لوزرتان"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "metformin",
+      "fa": "متفورمین",
+      "aliases": [
+        "متفورمین",
+        "متفورمين"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "levothyroxine",
+      "fa": "لووتیروکسین",
+      "aliases": [
+        "لووتیروکسین",
+        "لووتيروکسين"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "aspirin",
+      "fa": "آسپرین",
+      "aliases": [
+        "آسپرین",
+        "اسپرین",
+        "آسپیرین"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "sertraline",
+      "fa": "سرترالین",
+      "aliases": [
+        "سرترالین",
+        "سرترالين"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "citalopram",
+      "fa": "سیتالوپرام",
+      "aliases": [
+        "سیتالوپرام",
+        "سيتالوپرام"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "fluoxetine",
+      "fa": "فلوکستین",
+      "aliases": [
+        "فلوکستین",
+        "فلوکستين"
+      ]
+    },
+    {
+      "type": "drug",
+      "canonical": "venlafaxine",
+      "fa": "ونلافاکسین",
+      "aliases": [
+        "ونلافاکسین",
+        "ونلافاکسين"
+      ]
+    },
+    {
+      "type": "drug_class",
+      "canonical": "antidepressant",
+      "fa": "داروی ضدافسردگی",
+      "aliases": [
+        "ضد افسردگی",
+        "ضدافسردگی",
+        "داروی اعصاب",
+        "دارو اعصاب"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "diabetes",
+      "fa": "دیابت",
+      "aliases": [
+        "دیابت",
+        "ديابت",
+        "قند خون",
+        "مرض قند"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "cabg",
+      "fa": "عمل قلب باز",
+      "aliases": [
+        "عمل قلب باز",
+        "جراحی قلب باز",
+        "بای پس قلب",
+        "بای‌پس قلب",
+        "بایپس قلب"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "seizure",
+      "fa": "تشنج",
+      "aliases": [
+        "تشنج",
+        "صرع"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "obesity",
+      "fa": "چاقی",
+      "aliases": [
+        "چاقی",
+        "اضافه وزن",
+        "اضافه‌وزن",
+        "چاق"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "pcos",
+      "fa": "تنبلی تخمدان",
+      "aliases": [
+        "تنبلی تخمدان",
+        "تنبلي تخمدان",
+        "تخمدان پلی کیستیک",
+        "پلی‌کیستیک",
+        "pcos"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "depression",
+      "fa": "افسردگی",
+      "aliases": [
+        "افسردگی",
+        "افسردگي"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "hypertension",
+      "fa": "فشار خون",
+      "aliases": [
+        "فشار خون",
+        "فشارخون"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "thyroid",
+      "fa": "اختلال تیروئید",
+      "aliases": [
+        "تیروئید",
+        "تيروئيد",
+        "کم کاری تیروئید",
+        "پرکاری تیروئید"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "cardiovascular",
+      "fa": "بیماری قلبی",
+      "aliases": [
+        "بیماری قلبی",
+        "مشکل قلبی",
+        "قلب و عروق"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "kidney",
+      "fa": "بیماری کلیوی",
+      "aliases": [
+        "بیماری کلیوی",
+        "مشکل کلیه",
+        "نارسایی کلیه"
+      ]
+    },
+    {
+      "type": "condition",
+      "canonical": "pregnancy",
+      "fa": "بارداری",
+      "aliases": [
+        "بارداری",
+        "حاملگی"
+      ]
+    },
+    {
+      "type": "lab_test",
+      "canonical": "prolactin",
+      "fa": "پرولاکتین",
+      "aliases": [
+        "پرولاکتین",
+        "پرولاکتين",
+        "prolactin"
+      ]
+    },
+    {
+      "type": "lab_test",
+      "canonical": "vitamin_d",
+      "fa": "ویتامین D",
+      "aliases": [
+        "ویتامین دی",
+        "ویتامین د",
+        "ویتامین d",
+        "vitamin d"
+      ]
+    },
+    {
+      "type": "lab_test",
+      "canonical": "hba1c",
+      "fa": "HbA1c",
+      "aliases": [
+        "hba1c",
+        "هموگلوبین a1c",
+        "a1c"
+      ]
+    },
+    {
+      "type": "lab_test",
+      "canonical": "fasting_glucose",
+      "fa": "قند ناشتا",
+      "aliases": [
+        "قند ناشتا",
+        "fbs",
+        "گلوکز ناشتا"
+      ]
+    },
+    {
+      "type": "lab_test",
+      "canonical": "cbc",
+      "fa": "CBC",
+      "aliases": [
+        "cbc",
+        "سی بی سی",
+        "شمارش کامل خون"
+      ]
+    },
+    {
+      "type": "lab_test",
+      "canonical": "tsh",
+      "fa": "TSH",
+      "aliases": [
+        "tsh",
+        "تی اس اچ"
+      ]
+    },
+    {
+      "type": "prep",
+      "canonical": "fasting",
+      "fa": "ناشتایی",
+      "aliases": [
+        "ناشتا",
+        "ناشتایی",
+        "ناشتايي",
+        "ناشتا باشید",
+        "ناشتا باشین"
+      ]
+    },
+    {
+      "type": "prep",
+      "canonical": "water_allowed",
+      "fa": "آب مجاز",
+      "aliases": [
+        "آب می تونید",
+        "آب می‌توانید",
+        "آب ساده",
+        "فقط آب"
+      ]
+    },
+    {
+      "type": "brand",
+      "canonical": "drsaina",
+      "fa": "دکترساینا",
+      "aliases": [
+        "دکترساینا",
+        "دکتر ساینا",
+        "ساینا"
+      ]
+    },
+    {
+      "type": "brand",
+      "canonical": "robra",
+      "fa": "روبرا",
+      "aliases": [
+        "روبرا"
+      ]
+    },
+    {
+      "type": "brand",
+      "canonical": "doctordoctor",
+      "fa": "دکتردکتر",
+      "aliases": [
+        "دکتردکتر",
+        "دکتر دکتر"
+      ]
+    },
+    {
+      "type": "brand",
+      "canonical": "homca",
+      "fa": "هومکا",
+      "aliases": [
+        "هومکا"
+      ]
+    },
+    {
+      "type": "brand",
+      "canonical": "man",
+      "fa": "مان",
+      "aliases": [
+        "مان"
+      ]
+    }
+  ],
+  "vocTopics": [
+    {
+      "id": "sampler_delay",
+      "label": "تاخیر نمونه‌گیر",
+      "keywords": [
+        "تاخیر نمونه گیر",
+        "نمونه گیر دیر",
+        "دیر رسید",
+        "هنوز نیومده",
+        "هنوز نرسیده"
+      ]
+    },
+    {
+      "id": "sampler_no_show",
+      "label": "عدم حضور/عدم تماس نمونه‌گیر",
+      "keywords": [
+        "نمونه گیر نیومد",
+        "نمونه گیر نیامد",
+        "نمونه گیر تماس نگرفت",
+        "عدم حضور نمونه گیر"
+      ]
+    },
+    {
+      "id": "doctor_interpretation",
+      "label": "عدم دریافت تفسیر/ویزیت",
+      "keywords": [
+        "تفسیر نگرفتم",
+        "پزشک تماس نگرفت",
+        "ویزیت انجام نشد",
+        "تفسیر نشده",
+        "دکتر زنگ نزد"
+      ]
+    },
+    {
+      "id": "result_delay",
+      "label": "تاخیر جواب آزمایش",
+      "keywords": [
+        "جواب دیر",
+        "نتیجه دیر",
+        "هنوز جواب نیومده",
+        "جواب آزمایش نیامده",
+        "تاخیر آزمایشگاه"
+      ]
+    },
+    {
+      "id": "incomplete_result",
+      "label": "جواب ناقص",
+      "keywords": [
+        "جواب ناقص",
+        "نتیجه ناقص",
+        "یکی از تست ها نیست",
+        "تست جا افتاده"
+      ]
+    },
+    {
+      "id": "billing",
+      "label": "قبض/فاکتور/مغایرت مالی",
+      "keywords": [
+        "قبض",
+        "فاکتور",
+        "مغایرت",
+        "هزینه اضافه",
+        "پرداخت",
+        "مبلغ"
+      ]
+    },
+    {
+      "id": "insurance",
+      "label": "بیمه",
+      "keywords": [
+        "بیمه",
+        "دانا",
+        "البرز",
+        "دی"
+      ]
+    },
+    {
+      "id": "reschedule",
+      "label": "تغییر زمان",
+      "keywords": [
+        "تغییر زمان",
+        "جابجا کنم",
+        "جا به جا کنم",
+        "زمان رو عوض",
+        "ساعت رو عوض"
+      ]
+    },
+    {
+      "id": "cancellation",
+      "label": "کنسلی",
+      "keywords": [
+        "کنسل",
+        "لغو",
+        "انصراف"
+      ]
+    },
+    {
+      "id": "wrong_upload",
+      "label": "آپلود اشتباه",
+      "keywords": [
+        "آپلود اشتباه",
+        "فایل اشتباه",
+        "جواب اشتباه",
+        "نتیجه کس دیگه"
+      ]
+    },
+    {
+      "id": "app_issue",
+      "label": "مشکل اپ/سامانه",
+      "keywords": [
+        "اپ باز نمیشه",
+        "برنامه باز نمیشه",
+        "سامانه مشکل",
+        "خطا میده",
+        "لینک کار نمیکنه"
+      ]
+    },
+    {
+      "id": "lab_issue",
+      "label": "مسئله آزمایشگاه",
+      "keywords": [
+        "آزمایشگاه",
+        "ازمایشگاه",
+        "پذیرش آزمایشگاه",
+        "آزمایشگاه قبول نکرد"
+      ]
+    },
+    {
+      "id": "sampling_pain",
+      "label": "تجربه نمونه‌گیری/درد",
+      "keywords": [
+        "درد",
+        "کبودی",
+        "رگ پیدا نکرد",
+        "چند بار سوزن",
+        "خونگیری بد"
+      ]
+    },
+    {
+      "id": "behavior",
+      "label": "رفتار و ارتباط",
+      "keywords": [
+        "بی ادب",
+        "بی‌ادب",
+        "رفتار بد",
+        "لحن بد",
+        "محترمانه نبود",
+        "عجله داشت"
+      ]
+    },
+    {
+      "id": "pricing",
+      "label": "قیمت/هزینه",
+      "keywords": [
+        "گرون",
+        "گران",
+        "قیمت",
+        "هزینه زیاد",
+        "مبلغ زیاد"
+      ]
+    },
+    {
+      "id": "other",
+      "label": "سایر",
+      "keywords": []
+    }
+  ],
+  "satisfaction": {
+    "positive": [
+      "راضی",
+      "خیلی خوب",
+      "عالی",
+      "ممنون",
+      "متشکرم",
+      "خوب بود",
+      "مشکلم حل شد",
+      "پیگیری شد",
+      "برخورد خوب",
+      "سریع انجام شد"
+    ],
+    "negative": [
+      "ناراضی",
+      "بد بود",
+      "افتضاح",
+      "خیلی بد",
+      "مشکل دارم",
+      "پیگیری نشده",
+      "جواب نگرفتم",
+      "دیر",
+      "تاخیر",
+      "اعتراض",
+      "شکایت",
+      "بی ادب",
+      "بی‌ادب",
+      "کنسل شد"
+    ]
+  }
+}
