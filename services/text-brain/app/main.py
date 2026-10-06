@@ -22,7 +22,7 @@ MEDICAL_LEXICON={
 
 VOC_TOPICS=[
  ("interpretation_not_received",["تفسیر","پزشک تماس نگرفت","جواب آزمایش رو توضیح","توضیح جواب"]),
- ("sampler_delay",["نمونه گیر دیر","نمونه‌گیر دیر","تاخیر نمونه گیر","تأخیر نمونه گیر","هنوز نیومده","هنوز نیامده"]),
+ ("sampler_delay",["نمونه گیر دیر","نمونه‌گیر دیر","نمونه گیر خیلی دیر","نمونه‌گیر خیلی دیر","تاخیر نمونه گیر","تأخیر نمونه گیر","هنوز نیومده","هنوز نیامده"]),
  ("sampler_no_contact",["نمونه گیر تماس نگرفت","نمونه‌گیر تماس نگرفت","هیچ تماسی نگرفت"]),
  ("reschedule",["تغییر زمان","عوض کردن زمان","ساعت رو تغییر","ساعت را تغییر"]),
  ("wrong_upload",["آپلود اشتباه","فایل اشتباه","جواب اشتباه"]),
@@ -85,16 +85,17 @@ def normalize_fa(text:str)->str:
     t=re.sub(r"\s*([،؛:,.!?؟])\s*",r"\1 ",t)
     return re.sub(r"\s+"," ",t).strip().lower()
 
-def context_negated(text:str,start:int)->bool:
-    left=text[max(0,start-35):start]
-    return any(n in left for n in NEGATIONS)
+def context_negated(text:str,start:int,end:int|None=None)->bool:
+    end=end if end is not None else start
+    window=text[max(0,start-35):min(len(text),end+35)]
+    return any(n in window for n in NEGATIONS)
 
 def extract_entities(text:str)->list[Entity]:
     out:list[Entity]=[]
     for typ,terms in MEDICAL_LEXICON.items():
         for term in terms:
             for m in re.finditer(re.escape(term.lower()),text):
-                out.append(Entity(type=typ,text=m.group(0),start=m.start(),end=m.end(),negated=context_negated(text,m.start()),confidence=.98))
+                out.append(Entity(type=typ,text=m.group(0),start=m.start(),end=m.end(),negated=context_negated(text,m.start(),m.end()),confidence=.98))
     patterns=[
       ("dose",r"\b\d+(?:\.\d+)?\s*(?:میلی ?گرم|mg|واحد)\b"),
       ("time",r"\b(?:[01]?\d|2[0-3])[:٫.]?[0-5]?\d?\b"),
@@ -102,7 +103,7 @@ def extract_entities(text:str)->list[Entity]:
     ]
     for typ,p in patterns:
         for m in re.finditer(p,text,re.I):
-            out.append(Entity(type=typ,text=m.group(0),start=m.start(),end=m.end(),negated=context_negated(text,m.start()),confidence=.95))
+            out.append(Entity(type=typ,text=m.group(0),start=m.start(),end=m.end(),negated=context_negated(text,m.start(),m.end()),confidence=.95))
     out.sort(key=lambda x:(x.start,x.end,x.type))
     ded=[]; seen=set()
     for e in out:
