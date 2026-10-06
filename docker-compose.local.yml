@@ -3,6 +3,9 @@ services:
     environment:
       COOKIE_SECURE: "false"
       ALLOWED_ORIGINS: http://localhost:8088
+      OGANESON_BASE_URL: ${OGANESON_BASE_URL:-http://host.docker.internal:7070}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   web:
     ports:
       - "8088:80"
