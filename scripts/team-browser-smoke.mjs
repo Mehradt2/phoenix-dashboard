@@ -7,6 +7,12 @@ let r=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});if(!r?.o
 await page.getByText('کوله‌پشتی تیم QC').waitFor({state:'visible',timeout:15000});
 await page.getByPlaceholder('ایمیل سازمانی').fill(email);await page.getByPlaceholder('رمز عبور').fill(password);await page.getByRole('button',{name:'ورود به فضای تیم'}).click();
 await page.getByText('از مکالمه خام تا اقدام اصلاحی').waitFor({state:'visible',timeout:15000});
+await page.getByRole('button',{name:'مغز تحلیل متن'}).click();
+await page.getByText('مغز QC و پرونده‌سازی فارسی').waitFor({state:'visible',timeout:7000});
+await page.getByRole('button',{name:'VOC کاربران'}).click();
+await page.getByPlaceholder('متن فارسی مکالمه…').fill('جواب آزمایش دیر شد و پشتیبانی پاسخ نداد.');
+await page.getByRole('button',{name:'تحلیل متن'}).click();
+await page.getByText('Preview تحلیل').waitFor({state:'visible',timeout:7000});
 await page.getByRole('button',{name:'پزشکان'}).click();await page.getByRole('button',{name:'گزارش‌ها'}).click();await page.getByText('گزارش مدیریتی پزشکان').waitFor({state:'visible',timeout:5000});
 await page.getByRole('button',{name:'نمونه‌گیران'}).click();await page.getByRole('button',{name:'صف بررسی'}).click();await page.getByText('صف Review').waitFor({state:'visible',timeout:5000});
 await page.getByRole('button',{name:'سیستم و بازیابی'}).click();await page.getByText('Team PostgreSQL').waitFor({state:'visible',timeout:5000});await page.getByText('مدیریت کاربران تیم').waitFor({state:'visible',timeout:5000});
