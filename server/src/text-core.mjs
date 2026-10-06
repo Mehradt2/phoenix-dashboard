@@ -346,6 +346,9 @@ export function analyzeVoc(input, options = {}) {
 
   return {
     domain: 'voc', version: 'text-core-3.0.0', userKey: options.userKey || null,
+    conversationScore: null, coverage: quality.insufficient ? 30 : 100,
+    risk: urgent ? 'critical' : satisfaction === 'dissatisfied' ? 'high' : 'low',
+    requiresHumanReview: true, criticalFailures: urgent ? ['VOC_URGENT_REVIEW'] : [], findings: [],
     topic: { id: topic.id, label: topic.label, confidence: topic.score ? Math.min(.95, .6 + .08 * topic.score) : .2, candidates: topicScores.slice(0, 4) },
     satisfaction: { label: satisfaction, confidence: Number(confidence.toFixed(2)), positiveEvidence: positive.slice(0, 4), negativeEvidence: negative.slice(0, 4) },
     resolution: resolved && !unresolved ? 'resolved' : unresolved ? 'unresolved' : 'unknown',
