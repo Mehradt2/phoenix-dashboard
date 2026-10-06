@@ -14,7 +14,7 @@ export type VocQC={
  findings:{ruleId:string;label:string;matched:boolean;confidence:number;critical:boolean;status:'pass'|'review';excerpts:string[]}[];
  warnings:string[];
 };
-const norm=(s:string)=>s.replace(/[يى]/g,'ی').replace(/[ك]/g,'ک').replace(/[ۀة]/g,'ه').replace(/[ؤ]/g,'و').replace(/[إأ]/g,'ا').replace(/‌/g,' ').replace(/s+/g,' ').trim().toLowerCase();
+const norm=(s:string)=>s.replace(/[يى]/g,'ی').replace(/[ك]/g,'ک').replace(/[ۀة]/g,'ه').replace(/[ؤ]/g,'و').replace(/[إأ]/g,'ا').replace(/‌/g,' ').replace(/\s+/g,' ').trim().toLowerCase();
 const TOPICS=[
  ['interpretation_not_received','عدم دریافت تفسیر',['تفسیر','پزشک تماس نگرفت','توضیح جواب','جواب آزمایش رو توضیح']],
  ['sampler_delay','تأخیر نمونه‌گیر',['نمونه گیر دیر','نمونه‌گیر دیر','هنوز نیومده','هنوز نیامده','تاخیر نمونه گیر','تأخیر نمونه گیر']],
@@ -33,7 +33,7 @@ export function evaluateVoc(transcript:string):VocQC{
  const t=norm(transcript),warnings:string[]=[];
  if(t.length<12)return{version:'voc-qc-1.0.0-candidate',scoreStatus:'review_required',conversationScore:null,finalScore:null,topic:'unknown',topicConfidence:.1,satisfaction:'unknown',satisfactionConfidence:.1,risk:'medium',requiresHumanReview:true,criticalFailures:[],findings:[],warnings:['متن برای طبقه‌بندی VOC کافی نیست.']};
  const ranked=TOPICS.map(([id,label,terms])=>({id,label,hits:terms.filter(x=>t.includes(x))})).filter(x=>x.hits.length).sort((a,b)=>b.hits.length-a.hits.length);
- const top=ranked[0],topic=top?.id||'other',topicConfidence=top?(top.hits.length>=2?.92:.74):.2;
+ const top=ranked[0],topic:string=top?.id||'other',topicConfidence=top?(top.hits.length>=2?.92:.74):.2;
  const neg=DISSAT.filter(x=>t.includes(x)),pos=SAT.filter(x=>t.includes(x)).filter(x=>!(x==='راضی هستم'&&t.includes('ناراضی')));
  let satisfaction:VocSatisfaction='unknown';if(neg.length&&!pos.length)satisfaction='dissatisfied';else if(pos.length&&!neg.length)satisfaction='satisfied';else if(pos.length&&neg.length)satisfaction='mixed';
  const satisfactionConfidence=(neg.length||pos.length)?.88:.2,needs=topic==='other'||satisfaction==='unknown'||satisfaction==='mixed';
