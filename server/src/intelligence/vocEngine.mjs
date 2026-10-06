@@ -17,21 +17,23 @@ const POS=['عالی','خوب بود','راضی','ممنون','سپاس','خوش
 const NEG=['بد','ناراضی','افتضاح','اصلا راضی','اصلاً راضی','دیر','تاخیر','مشکل','اشتباه','ناقص','نیامد','نیومد','جواب نداد','پاسخ نداد','بی ادب','بی‌ادب','دردناک','کبودی','شکایت'];
 const esc=s=>s.replace(/[.*+?^$(){}|[\]\\]/g,'\\$&');
 
+function lexicalRegex(term){
+ return new RegExp('(?<![\\p{L}\\p{N}])('+esc(term)+')(?![\\p{L}\\p{N}])','giu');
+}
 function lexHits(t,words){
  const out=[];
  for(const w of words){
-  const re=new RegExp('(^|[^\\\\p{L}\\\\p{N}])('+esc(w)+')(?=$|[^\\\\p{L}\\\\p{N}])','giu');
+  const re=lexicalRegex(w);
   for(const m of t.matchAll(re)){
-   const i=(m.index||0)+m[1].length;
+   const i=m.index||0;
    if(!lexicalNegated(t,i))out.push({term:w,index:i});
   }
  }
  return out;
 }
-
 export function evaluateVoc(transcript){
  const t=normalizePersian(transcript),q=textQuality(t);
- if(!q.sufficient)return{version:'voc-fa-0.1.0',scoreStatus:'non_scorable',primaryTopic:'unknown',topics:[],sentiment:'unknown',satisfaction:'unknown',confidence:0,evidence:[],urgency:'review',warnings:['Transcript برای VOC کافی نیست.']};
+ if(!q.sufficient)return{version:'voc-fa-0.2.0',scoreStatus:'non_scorable',primaryTopic:'unknown',topics:[],sentiment:'unknown',satisfaction:'unknown',confidence:0,evidence:[],urgency:'review',warnings:['Transcript برای VOC کافی نیست.']};
  const topics=TOPICS.map(([id,label,patterns])=>{const ev=evidenceWindows(t,patterns);return{id,label,matched:ev.length>0,evidence:ev}}).filter(x=>x.matched);
  const ph=lexHits(t,POS),nh=lexHits(t,NEG);
  let sentiment='neutral',satisfaction='neutral';
@@ -41,6 +43,6 @@ export function evaluateVoc(transcript){
  const urgent=/(خونریزی شدید|بیهوش|غش|تنگی نفس شدید|درد شدید|واکنش حساسیتی شدید)/.test(t);
  const evidence=[...ph.slice(0,3).map(x=>x.term),...nh.slice(0,3).map(x=>x.term)];
  const confidence=Math.min(.95,.5+.1*Math.min(3,topics.length)+.08*Math.min(3,ph.length+nh.length));
- return{version:'voc-fa-0.1.0',scoreStatus:'classified',primaryTopic:topics[0]?.id||'other',topics,sentiment,satisfaction,confidence:Number(confidence.toFixed(2)),evidence,urgency:urgent?'urgent_review':'normal',warnings:topics.length?[]:['موضوع با Confidence کافی به Taxonomy فعلی نگاشت نشد؛ Review انسانی پیشنهاد می‌شود.']};
+ return{version:'voc-fa-0.2.0',scoreStatus:'classified',primaryTopic:topics[0]?.id||'other',topics,sentiment,satisfaction,confidence:Number(confidence.toFixed(2)),evidence,urgency:urgent?'urgent_review':'normal',warnings:topics.length?[]:['موضوع با Confidence کافی به Taxonomy فعلی نگاشت نشد؛ Review انسانی پیشنهاد می‌شود.']};
 }
 export const VOC_TOPIC_TAXONOMY=TOPICS.map(([id,label])=>({id,label}));
