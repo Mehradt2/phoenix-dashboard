@@ -24,6 +24,8 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-kuleposhti}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-kuleposhti}
       DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY:?set DATA_ENCRYPTION_KEY}
     command: ["node","src/migrate.mjs"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       db: {condition: service_healthy}
     networks: [internal]
@@ -44,6 +46,10 @@ services:
       SESSION_HOURS: ${SESSION_HOURS:-12}
       ALLOWED_ORIGINS: https://${DOMAIN:?set DOMAIN}
       DB_POOL_MAX: ${DB_POOL_MAX:-10}
+      OGANSON_BASE_URL: ${OGANSON_BASE_URL:-http://host.docker.internal:9000}
+      OGANSON_SHARED_TOKEN: ${OGANSON_SHARED_TOKEN:?set OGANSON_SHARED_TOKEN}
+      OGANSON_HEALTH_PATH: ${OGANSON_HEALTH_PATH:-/health}
+      OGANSON_RESULT_PATH: ${OGANSON_RESULT_PATH:-/api/transcripts}
     depends_on:
       db: {condition: service_healthy}
       migrate: {condition: service_completed_successfully}
