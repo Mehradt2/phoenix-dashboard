@@ -27,6 +27,16 @@ export const OPERATIONAL_POLICY:Record<QcDomain,{version:string;title:string;con
    {id:'PH-OPS-09',label:'حداقل طول مکالمه',rule:'برای QC کامل مکالمه، آستانه عملیاتی ۸ دقیقه است؛ تماس کوتاه‌تر نیازمند دلیل و Review انسانی است.',source:'conversation',severity:'warning',autoAvailable:true}
   ]
  },
+ voc:{
+  version:'voc-ops-2026-10-07',
+  title:'کنترل‌های VOC کاربران',
+  controls:[
+   {id:'VOC-OPS-01',label:'موضوع تماس',rule:'موضوع و زیرموضوع باید با Evidence متنی و Confidence ثبت شود؛ در Confidence پایین Human Review الزامی است.',source:'conversation',severity:'warning',autoAvailable:true},
+   {id:'VOC-OPS-02',label:'رضایت/عدم رضایت',rule:'رضایت فقط از Evidence مکالمه/Reviewer تعیین می‌شود؛ Unknown نباید به Neutral تبدیل شود.',source:'conversation',severity:'warning',autoAvailable:true},
+   {id:'VOC-OPS-03',label:'حل مسئله',rule:'Resolution Status از Workflow/CRM معتبر می‌آید و از لحن مکالمه حدس زده نمی‌شود.',source:'external',severity:'critical',autoAvailable:false},
+   {id:'VOC-OPS-04',label:'تکرار تماس',rule:'Repeated Contact و User History فقط با subject_id معتبر ساخته می‌شود؛ نام کاربر کلید هویت نیست.',source:'external',severity:'critical',autoAvailable:false}
+  ]
+ },
  sampler:{
   version:'sampler-ops-2026-09-21',
   title:'کنترل‌های عملیاتی نمونه‌گیران',
