@@ -7,16 +7,18 @@ const LEX={
  preparation:['ناشتا','ناشتایی','آب ساده','صبحانه','چای','قهوه','سیگار','آدامس']
 };
 const esc=s=>s.replace(/[.*+?^$(){}|[\]\\]/g,'\\$&');
+const termRegex=term=>new RegExp('(?<![\\p{L}\\p{N}])('+esc(term)+')(?![\\p{L}\\p{N}])','giu');
+
 export function extractMedicalEntities(text){
  const t=normalizePersian(text),entities=[];
  for(const[type,vals]of Object.entries(LEX)){
   for(const raw of vals){
-   const term=normalizePersian(raw),re=new RegExp('(^|[^\\\\p{L}\\\\p{N}])('+esc(term)+')(?=$|[^\\\\p{L}\\\\p{N}])','giu');
-   for(const m of t.matchAll(re))entities.push({type,value:m[2],start:(m.index||0)+m[1].length,end:(m.index||0)+m[0].length});
+   const term=normalizePersian(raw),re=termRegex(term);
+   for(const m of t.matchAll(re))entities.push({type,value:m[1],start:m.index||0,end:(m.index||0)+m[1].length});
   }
  }
- const dose=/(^|[^\\p{L}\\p{N}])(\\d+(?:[./]\\d+)?\\s*(?:میلی ?گرم|mg|گرم|g|واحد|unit|سی ?سی|ml))(?=$|[^\\p{L}\\p{N}])/giu;
- for(const m of t.matchAll(dose)){const start=(m.index||0)+m[1].length;entities.push({type:'dose',value:m[2],start,end:start+m[2].length})}
+ const dose=/(?<![\p{L}\p{N}])(\d+(?:[./]\d+)?\s*(?:میلی ?گرم|mg|گرم|g|واحد|unit|سی ?سی|ml))(?![\p{L}\p{N}])/giu;
+ for(const m of t.matchAll(dose))entities.push({type:'dose',value:m[1],start:m.index||0,end:(m.index||0)+m[1].length});
  return entities.sort((a,b)=>a.start-b.start);
 }
-export const MEDICAL_LEXICON_VERSION='fa-medical-lexicon-0.1.0';
+export const MEDICAL_LEXICON_VERSION='fa-medical-lexicon-0.2.0';
