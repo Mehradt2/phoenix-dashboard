@@ -1,5 +1,6 @@
-export type QcDomain='sampler'|'physician';
+export type QcDomain='sampler'|'physician'|'voc';
 export const DOMAIN_META={
  sampler:{label:'نمونه‌گیران',personLabel:'نمونه‌گیر',accent:'teal'},
- physician:{label:'پزشکان',personLabel:'پزشک',accent:'indigo'}
+ physician:{label:'پزشکان',personLabel:'پزشک',accent:'indigo'},
+ voc:{label:'صدای کاربران',personLabel:'کاربر',accent:'amber'}
 } as const;

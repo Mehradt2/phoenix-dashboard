@@ -1,3 +1,4 @@
+import type{QcDomain}from'./domain';
 import{probeHardware}from'./modelPolicy';
 import{configureTransformersRuntime,resolveModelRuntime}from'./modelRuntime';
 
@@ -89,16 +90,16 @@ export async function warmLocalAi(onProgress?:(s:string)=>void){
  return pipePromise;
 }
 
-export async function localQcCopilot(transcript:string,domain:'sampler'|'physician',onProgress?:(s:string)=>void,qc?:unknown):Promise<LocalAiInsight>{
+export async function localQcCopilot(transcript:string,domain:QcDomain,onProgress?:(s:string)=>void,qc?:unknown):Promise<LocalAiInsight>{
  const clean=transcript.trim();
  if(!clean)throw new Error('LOCAL_AI_EMPTY_TRANSCRIPT');
  const loaded=await warmLocalAi(onProgress);
  onProgress?.('در حال تحلیل Evidence با AI محلی…');
  const system='تو Copilot کنترل کیفیت فارسی هستی. Rule Engine و Human Review مرجع تصمیم هستند. فقط بر اساس Transcript و Context ساختاریافته زیر تحلیل کن. هیچ تشخیص پزشکی، واقعیت، نام، عدد، Rule یا Evidence جدید نساز. امتیازها را دوباره محاسبه یا تغییر نده. اگر Evidence کافی نیست صریحاً بنویس نامشخص. این تحلیل توصیه‌ای است و حق تغییر امتیاز QC، Critical Rule یا نتیجه Human Review را ندارد.';
- const scope=domain==='physician'?'تمرکز: احراز هویت، شرح حال، دارو، دستور/توضیح، ریسک ارتباطی و موارد نیازمند Medical/QC Review.':'تمرکز: معرفی، هماهنگی زمان/آدرس، آمادگی آزمایش، کیفیت ارتباط، ابهام عملیاتی و Coaching.';
+ const scope=domain==='physician'?'تمرکز: احراز هویت، شرح حال، دارو، دستور/توضیح، ریسک ارتباطی و موارد نیازمند Medical/QC Review.':domain==='sampler'?'تمرکز: معرفی، هماهنگی زمان/آدرس، آمادگی آزمایش، کیفیت ارتباط، ابهام عملیاتی و Coaching.':'تمرکز: موضوع تماس، علت نارضایتی/رضایت، شواهد متنی، ابهام و موارد نیازمند Review. Resolution را از متن حدس قطعی نزن.';
  const grounded=compactQcContext(qc);
  const ruleContext=JSON.stringify(grounded);
- const prompt=`${system}\nحوزه: ${domain==='physician'?'پزشک':'نمونه‌گیر'}\n${scope}\nContext قطعی Rule Engine:\n${ruleContext}\n\nمتن مکالمه:\n${clean.slice(0,12000)}\n\nخروجی را در حداکثر 6 خط فارسی و دقیقاً با این عنوان‌ها بده: خلاصه: | ریسک‌ها: | Evidence: | Coaching: | بررسی انسانی:. در Evidence فقط Rule ID/Excerpt موجود در Context یا Transcript را ارجاع بده. از حدس‌زدن خودداری کن.`;
+ const prompt=`${system}\nحوزه: ${domain==='physician'?'پزشک':domain==='sampler'?'نمونه‌گیر':'VOC کاربر'}\n${scope}\nContext قطعی Rule Engine:\n${ruleContext}\n\nمتن مکالمه:\n${clean.slice(0,12000)}\n\nخروجی را در حداکثر 6 خط فارسی و دقیقاً با این عنوان‌ها بده: خلاصه: | ریسک‌ها: | Evidence: | Coaching: | بررسی انسانی:. در Evidence فقط Rule ID/Excerpt موجود در Context یا Transcript را ارجاع بده. از حدس‌زدن خودداری کن.`;
  let out:any;
  try{
   out=await withTimeout(loaded.pipe(prompt,{max_new_tokens:260,do_sample:false,temperature:0,return_full_text:false}as any) as Promise<any>,GENERATE_TIMEOUT_MS,'LOCAL_AI_GENERATION_TIMEOUT');

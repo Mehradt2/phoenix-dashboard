@@ -65,3 +65,14 @@
 - `knowledge/QC_RULE_CATALOG_v1.2.0.json` — Catalog ماشین‌خوان Ruleها و شروط.
 
 - `OFFLINE_AI_RUNTIME_FA.md` — معماری Model Pack، Local Copilot، Docker Offline و Windows/Tauri.
+
+
+## معماری v2 — Oganson / Text Intelligence
+- `docs/v2/PRD_LOCAL_TEXT_INTELLIGENCE_V2_FA.md` — PRD رسمی v2.
+- `docs/v2/ARCHITECTURE_OGANSON_LOCAL_V2_FA.md` — معماری Oganson → Text Brain → QC → Profiles.
+- `docs/v2/NLP_BENCHMARK_PERSIAN_MEDICAL_V2_FA.md` — Benchmark فارسی/پزشکی.
+- `docs/v2/MVP_ACCEPTANCE_V2_FA.md` — MVP و Acceptance Gates.
+- `docs/adr/ADR-002-oganson-adapter.md` — تصمیم معماری Adapter.
+- `docker-compose.local-v2.yml` — استقرار Local/On-prem.
+- `services/text-brain/` — سرویس Persian Text Brain.
+- `server/migrations/003_oganson_voc_profiles.sql` — Schema Oganson/VOC/Profile History.

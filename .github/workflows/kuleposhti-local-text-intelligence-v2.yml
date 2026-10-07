@@ -1,0 +1,47 @@
+name: KulePoshti Local Text Intelligence v2
+
+on:
+  push:
+    branches: [kuleposhti-local-text-intelligence-v2]
+  workflow_dispatch:
+
+jobs:
+  text-brain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install text-brain dependencies
+        run: pip install -r services/text-brain/requirements.txt
+      - name: Persian NLP regression tests
+        working-directory: services/text-brain
+        run: python -m unittest discover -s tests -v
+      - name: Python compile
+        run: python -m py_compile services/text-brain/app/main.py
+      - name: Build text-brain image
+        run: docker build -t kuleposhti-text-brain:test services/text-brain
+      - name: Compose config
+        env:
+          POSTGRES_PASSWORD: ci-strong-password
+        run: docker compose -f docker-compose.local-v2.yml config >/tmp/kp-compose.yml
+      - name: Architecture contract checks
+        run: |
+          grep -q "TEXT_BRAIN_URL" docker-compose.local-v2.yml
+          grep -q "OGANSON_BASE_URL" docker-compose.local-v2.yml
+          grep -q "voc_interactions" server/migrations/003_oganson_voc_profiles.sql
+          grep -q "/api/v2/oganson/ingest" server/src/index.mjs
+          grep -q "/api/v2/history/:domain/:subjectId" server/src/index.mjs
+
+  existing-product-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - run: npm run check
+      - run: npm test -- --run
+      - run: npm run build

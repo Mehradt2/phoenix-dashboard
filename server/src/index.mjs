@@ -58,5 +58,55 @@ app.patch('/api/users/:id',auth(['admin']),async(req,res)=>{const active=Boolean
 app.get('/api/rule-packs',auth(),async(req,res)=>{const r=await q('select id,domain,version,status,sha256,content_json as content,created_at as "createdAt" from rule_packs order by created_at desc');res.json({rulePacks:r.rows})});
 app.post('/api/rule-packs',auth(['supervisor','admin']),async(req,res)=>{const{domain,version,status='candidate',content}=req.body||{};if(!['sampler','physician'].includes(domain)||!version||!content)return res.status(400).json({error:'invalid_rule_pack'});const hash=sha256(JSON.stringify(content));await q('insert into rule_packs(domain,version,status,sha256,content_json,created_by) values($1,$2,$3,$4,$5,$6)',[domain,version,status,hash,content,req.user.id]);await audit(req.user.id,'rule_pack_created',{domain,version,status,sha256:hash},null,domain);res.status(201).json({ok:true,sha256:hash})});
 
+
+const TEXT_BRAIN_URL=(process.env.TEXT_BRAIN_URL||'http://text-brain:8090').replace(/\/$/,'');
+const OGANSON_INGEST_TOKEN=process.env.OGANSON_INGEST_TOKEN||'';
+
+async function textBrain(path,payload){
+ const r=await fetch(TEXT_BRAIN_URL+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(15000)});
+ if(!r.ok)throw new Error('text_brain_'+r.status+':'+await r.text());
+ return r.json()
+}
+function ogansonAuth(req,res,next){
+ if(!OGANSON_INGEST_TOKEN)return res.status(503).json({error:'oganson_ingest_not_configured'});
+ if(req.get('x-oganson-token')!==OGANSON_INGEST_TOKEN)return res.status(401).json({error:'invalid_oganson_token'});
+ next()
+}
+app.get('/api/v2/text/health',auth(),async(_req,res)=>{try{const r=await fetch(TEXT_BRAIN_URL+'/healthz',{signal:AbortSignal.timeout(3000)});res.status(r.ok?200:503).json(await r.json())}catch{res.status(503).json({ok:false,error:'text_brain_unavailable'})}});
+app.post('/api/v2/text/analyze',auth(),async(req,res)=>{try{res.json(await textBrain('/v1/analyze',req.body))}catch(e){res.status(502).json({error:'text_brain_failed',detail:String(e.message||e)})}});
+
+app.post('/api/v2/oganson/ingest',ogansonAuth,async(req,res)=>{
+ const t=req.body||{};
+ if(!t.source_call_id||!t.transcript_id||!['physician','sampler','voc'].includes(t.domain)||!t.subject_id||!String(t.text||'').trim())return res.status(400).json({error:'invalid_canonical_transcript'});
+ const exists=await q('select id,status from ingest_jobs where transcript_id=$1 or (source=$2 and source_call_id=$3) limit 1',[t.transcript_id,t.source||'oganson',t.source_call_id]);
+ if(exists.rowCount)return res.status(200).json({accepted:true,duplicate:true,id:exists.rows[0].id,status:exists.rows[0].status});
+ const enc=encryptJson(String(t.text));
+ const analysis=await textBrain('/v1/analyze',{source:t.source||'oganson',source_call_id:t.source_call_id,transcript_id:t.transcript_id,domain:t.domain,subject_id:t.subject_id,subject_name:t.subject_name||null,language:'fa',text:String(t.text),segments:Array.isArray(t.segments)?t.segments:[],created_at:t.created_at||null,stt:t.stt||{}});
+ const r=await q(`insert into ingest_jobs(source,source_call_id,transcript_id,domain,subject_id,subject_name,transcript_iv,transcript_cipher,segments_json,stt_json,analysis_json,status,occurred_at)
+ values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'analyzed',coalesce($12::timestamptz,now())) returning id,status,created_at`,[t.source||'oganson',t.source_call_id,t.transcript_id,t.domain,t.subject_id,t.subject_name||null,enc.iv,enc.cipher,t.segments||[],t.stt||{},analysis,t.created_at||null]);
+ if(t.domain==='voc'&&analysis?.voc){
+   await q('insert into voc_interactions(ingest_job_id,subject_id,subject_name,topic,satisfaction,confidence,evidence_json,created_at) values($1,$2,$3,$4,$5,$6,$7,coalesce($8::timestamptz,now()))',[r.rows[0].id,t.subject_id,t.subject_name||null,analysis.voc.topic,analysis.voc.satisfaction,Math.min(Number(analysis.voc.topic_confidence||0),Number(analysis.voc.satisfaction_confidence||0)),{topic:analysis.voc.topic_evidence||[],satisfaction:analysis.voc.satisfaction_evidence||[]},t.created_at||null]);
+ }
+ await audit(null,'oganson_ingest',{transcriptId:t.transcript_id,sourceCallId:t.source_call_id,subjectId:t.subject_id,status:'analyzed'},null,t.domain);
+ res.status(201).json({accepted:true,duplicate:false,id:r.rows[0].id,status:r.rows[0].status,analysis})
+});
+
+app.get('/api/v2/history/:domain/:subjectId',auth(),async(req,res)=>{
+ const domain=String(req.params.domain),subjectId=String(req.params.subjectId),start=req.query.start?String(req.query.start):null,end=req.query.end?String(req.query.end):null;
+ if(!['physician','sampler','voc'].includes(domain))return res.status(400).json({error:'invalid_domain'});
+ if(domain==='voc'){
+   const r=await q(`select id,subject_id as "subjectId",subject_name as "subjectName",topic,subtopic,satisfaction,confidence,evidence_json as evidence,resolution_status as "resolutionStatus",created_at as "createdAt" from voc_interactions where subject_id=$1 and ($2::timestamptz is null or created_at >= $2) and ($3::timestamptz is null or created_at < $3) order by created_at desc limit 5000`,[subjectId,start,end]);
+   return res.json({domain,subjectId,rows:r.rows});
+ }
+ const r=await q(`select id,domain,person_name as "personName",subject_id as "subjectId",source_name as "sourceName",duration_seconds::float as "durationSeconds",qc_json as qc,status,coalesce(occurred_at,created_at::date) as "occurredAt",created_at as "createdAt" from cases where deleted_at is null and domain=$1 and subject_id=$2 and ($3::timestamptz is null or created_at >= $3) and ($4::timestamptz is null or created_at < $4) order by created_at desc limit 5000`,[domain,subjectId,start,end]);
+ res.json({domain,subjectId,rows:r.rows})
+});
+
+app.get('/api/v2/voc/report',auth(),async(req,res)=>{
+ const start=req.query.start?String(req.query.start):null,end=req.query.end?String(req.query.end):null;
+ const r=await q(`select topic,satisfaction,count(*)::int n,avg(confidence)::float confidence from voc_interactions where ($1::timestamptz is null or created_at >= $1) and ($2::timestamptz is null or created_at < $2) group by topic,satisfaction order by n desc`,[start,end]);
+ res.json({rows:r.rows,start,end})
+});
+
 app.use((err,req,res,_next)=>{console.error(err);res.status(500).json({error:'internal_error',requestId:req.get('x-request-id')||null})});
 await bootstrapAdmin();app.listen(PORT,'0.0.0.0',()=>console.log('KulePoshti team API listening',PORT));

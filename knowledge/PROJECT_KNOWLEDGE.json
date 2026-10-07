@@ -1,7 +1,7 @@
 {
   "product": "KulePoshti",
   "purpose": "Persian conversation quality-control operations system",
-  "source_branch": "kuleposhti-operational-web-v1",
+  "source_branch": "kuleposhti-local-text-intelligence-v2",
   "public_runtime": "https://mehradt2.github.io/phoenix-dashboard/",
   "runtimes": {
     "browser_local": {
@@ -22,11 +22,21 @@
       "database": "SQLite WAL",
       "asr": "whisper.cpp",
       "status": "separate evidence track"
+    },
+    "local_text_v2": {
+      "stt_provider": "Oganson via adapter",
+      "text_brain": "FastAPI/Python Persian-first",
+      "api": "Node 22/Express",
+      "database": "PostgreSQL 16",
+      "mode": "local/on-prem",
+      "paid_ai_api": false,
+      "internet_required_at_runtime": false
     }
   },
   "domains": [
     "physician",
-    "sampler"
+    "sampler",
+    "voc"
   ],
   "invariants": [
     "Evidence before QC pass",
@@ -38,20 +48,23 @@
     "No paid ASR or LLM API in critical path"
   ],
   "documentation_entry": "docs/00_INDEX_FA.md",
-  "docker_entry": "docker-compose.yml",
+  "docker_entry": "docker-compose.local-v2.yml",
   "database_migrations": "server/migrations",
   "api_source": "server/src",
   "ops_scripts": "ops",
   "ci": [
     ".github/workflows/kuleposhti-pages.yml",
-    ".github/workflows/kuleposhti-docker.yml"
+    ".github/workflows/kuleposhti-docker.yml",
+    ".github/workflows/kuleposhti-local-text-intelligence-v2.yml"
   ],
-  "release_family": "qc-online-v1.2",
+  "release_family": "qc-local-text-v2.0-mvp",
   "rule_packs": {
     "sampler": "sampler-conversation-qc-1.1.0",
     "physician": "physician-qc-2.0.0",
     "physician_operational": "physician-ops-2026-09-21",
-    "sampler_operational": "sampler-ops-2026-09-21"
+    "sampler_operational": "sampler-ops-2026-09-21",
+    "voc": "voc-qc-1.0.0-candidate",
+    "voc_operational": "voc-ops-2026-10-07"
   },
   "processing": {
     "browser_asr_policy": "browser-asr-policy-1.2.0",
@@ -61,7 +74,10 @@
     "retry": true,
     "false_success_blocked": true,
     "auto_mode": "WebGPU→whisper-small; no-WebGPU→whisper-tiny",
-    "case_pipeline_gate": "Upload→ASR/manual→QC→encrypted persist→Review→Evidence→Profile→Report→Audit"
+    "case_pipeline_gate": "Upload→ASR/manual→QC→encrypted persist→Review→Evidence→Profile→Report→Audit",
+    "v2_pipeline": "Oganson→Canonical Transcript→Persian Normalization→Medical Entity/Negation/VOC→Domain QC→Human Review→Profiles/History/Reports",
+    "identity_key": "trusted subject_id; never name-only",
+    "date_policy": "store UTC ISO; filter/display Gregorian or Jalali"
   },
   "profiles": {
     "individual_drilldown": true,
@@ -89,7 +105,17 @@
       "docker",
       "migrations",
       "tests",
-      "knowledge snapshot"
+      "knowledge snapshot",
+      "Oganson contract",
+      "text-brain model manifest",
+      "Gold benchmark evidence"
     ]
-  }
+  },
+  "documentation_v2": [
+    "docs/v2/PRD_LOCAL_TEXT_INTELLIGENCE_V2_FA.md",
+    "docs/v2/ARCHITECTURE_OGANSON_LOCAL_V2_FA.md",
+    "docs/v2/NLP_BENCHMARK_PERSIAN_MEDICAL_V2_FA.md",
+    "docs/v2/MVP_ACCEPTANCE_V2_FA.md",
+    "docs/adr/ADR-002-oganson-adapter.md"
+  ]
 }
