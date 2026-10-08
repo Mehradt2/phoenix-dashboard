@@ -45,7 +45,7 @@ def profile(entity_type:str,entity_id:str):return get_profile(entity_type,entity
 def history(entity_type:str,entity_id:str):return get_history(entity_type,entity_id)
 
 @app.get("/api/reports/{entity_type}")
-def report(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Query(None)):return list_cases(entity_type,date_from,date_to)
+def report(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Query(None),calendar:str="gregorian"):\n    return list_cases(entity_type,date_from,date_to,calendar)
 
 @app.get("/api/reports/{entity_type}.csv",response_class=PlainTextResponse)
 def report_csv(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Query(None)):
