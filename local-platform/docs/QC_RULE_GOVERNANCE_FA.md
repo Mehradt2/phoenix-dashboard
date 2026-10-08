@@ -8,6 +8,6 @@ Sampler: قواعد مستقل از پزشک است و نباید از Rule Pack
 
 VOC: Topic و satisfaction جدا از QC Score نگهداری می‌شوند.
 
-Vitamin D: mentioned، initiator، agreement، decision، committed_to_register، registered_as_said، external_verification.
+Vitamin D: mentioned، initiator، test_agreement، test_agreement_level، decision، committed_to_register، registered_as_said، external_verification.
 
 registered_as_said فقط ادعای صریح داخل مکالمه است؛ اثبات ثبت واقعی نیازمند Integration مجاز با Prescription DB است.
