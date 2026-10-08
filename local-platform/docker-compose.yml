@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: qc
+      POSTGRES_USER: qc
+      POSTGRES_PASSWORD: qc
+    volumes:
+      - qc_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U qc -d qc"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://qc:qc@db:5432/qc
+      OGASON_BASE_URL: http://host.docker.internal:8765
+      OGASON_TRANSCRIBE_PATH: /transcribe
+      QC_RULE_VERSION: doctor-v2.5.0
+      SAMPLER_RULE_VERSION: sampler-v1.0.0
+      VOC_RULE_VERSION: voc-v1.0.0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./models:/models:ro
+    ports:
+      - "8080:8000"
+    restart: unless-stopped
+
+volumes:
+  qc_pg:
