@@ -1,3 +1,4 @@
+from jdatetime import date as jdate
 import os,json,uuid
 from datetime import datetime,timezone
 from sqlalchemy import create_engine,text
@@ -29,7 +30,13 @@ def get_profile(et,ei):
     rows=_rows(et,ei);results=[json.loads(r["result_json"]) for r in rows]
     scores=[x["score"] for x in results if isinstance(x.get("score"),(int,float))]
     return {"entity_type":et,"entity_id":ei,"cases":len(results),"score":round(sum(scores)/len(scores),1) if scores else None,"last_score":scores[0] if scores else None,"history":results}
-def list_cases(et,df=None,dt=None):
+def list_cases(et,df=None,dt=None,calendar="gregorian"):
+    if calendar=="jalali":
+        if df:
+            y,m,d=[int(x) for x in df.replace("-","/").split("/")]; df=datetime(y,m,d).date().isoformat()
+        if dt:
+            y,m,d=[int(x) for x in dt.replace("-","/").split("/")]; dt=datetime(y,m,d).date().isoformat()
+
     rows=_rows(et,None,df,dt);items=[]
     for r in rows:
         x=json.loads(r["result_json"])
