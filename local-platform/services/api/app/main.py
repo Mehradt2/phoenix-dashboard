@@ -48,12 +48,15 @@ def profile(entity_type:str,entity_id:str):return get_profile(entity_type,entity
 @app.get("/api/profiles/{entity_type}/{entity_id}/history")
 def history(entity_type:str,entity_id:str):return get_history(entity_type,entity_id)
 
-@app.get("/api/reports/{entity_type}")
-def report(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Query(None),calendar:str="gregorian"):\n    return list_cases(entity_type,date_from,date_to,calendar)
-
 @app.get("/api/reports/{entity_type}.csv",response_class=PlainTextResponse)
-def report_csv(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Query(None)):
-    rows=list_cases(entity_type,date_from,date_to)["items"]
+def report_csv(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Query(None),calendar:str="gregorian"):
+    rows=list_cases(entity_type,date_from,date_to,calendar)["items"]
+    headers=["id","entity_type","entity_id","occurred_at","score","status","topic","satisfaction"]
+    return "\n".join([",".join(headers)]+[",".join(str(r.get(h,"")).replace(","," ") for h in headers) for r in rows])
+
+@app.get("/api/reports/{entity_type}")
+def report(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Query(None),calendar:str="gregorian"):
+    return list_cases(entity_type,date_from,date_to,calendar)
     headers=["id","entity_type","entity_id","occurred_at","score","status","topic","satisfaction"]
     return "\n".join([",".join(headers)]+[",".join(str(r.get(h,"")).replace(","," ") for h in headers) for r in rows])
 
