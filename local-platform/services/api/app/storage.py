@@ -33,9 +33,9 @@ def get_profile(et,ei):
 def list_cases(et,df=None,dt=None,calendar="gregorian"):
     if calendar=="jalali":
         if df:
-            y,m,d=[int(x) for x in df.replace("-","/").split("/")]; df=datetime(y,m,d).date().isoformat()
+            y,m,d=[int(x) for x in df.replace("-","/").split("/")]; df=jdate(y,m,d).togregorian().isoformat()
         if dt:
-            y,m,d=[int(x) for x in dt.replace("-","/").split("/")]; dt=datetime(y,m,d).date().isoformat()
+            y,m,d=[int(x) for x in dt.replace("-","/").split("/")]; dt=jdate(y,m,d).togregorian().isoformat()
 
     rows=_rows(et,None,df,dt);items=[]
     for r in rows:
