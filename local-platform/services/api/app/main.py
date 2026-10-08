@@ -1,5 +1,5 @@
 from fastapi import FastAPI,HTTPException,Query
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse,FileResponse
 from pydantic import BaseModel,Field
 from datetime import datetime,timezone
 from .storage import init_db,save_case,get_profile,get_history,list_cases
@@ -52,3 +52,7 @@ def report_csv(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Q
     rows=list_cases(entity_type,date_from,date_to)["items"]
     headers=["id","entity_type","entity_id","occurred_at","score","status","topic","satisfaction"]
     return "\n".join([",".join(headers)]+[",".join(str(r.get(h,"")).replace(","," ") for h in headers) for r in rows])
+
+@app.get("/",include_in_schema=False)
+def web_home():
+    return FileResponse("/app/web/index.html")
