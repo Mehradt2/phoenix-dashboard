@@ -57,8 +57,6 @@ def report_csv(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Q
 @app.get("/api/reports/{entity_type}")
 def report(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Query(None),calendar:str="gregorian"):
     return list_cases(entity_type,date_from,date_to,calendar)
-    headers=["id","entity_type","entity_id","occurred_at","score","status","topic","satisfaction"]
-    return "\n".join([",".join(headers)]+[",".join(str(r.get(h,"")).replace(","," ") for h in headers) for r in rows])
 
 @app.get("/",include_in_schema=False)
 def web_home():
