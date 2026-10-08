@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: qc
+      POSTGRES_USER: qc
+      POSTGRES_PASSWORD: qc
+    volumes:
+      - qc_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U qc -d qc"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  api:
+    build: ./services/api
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./models:/models:ro
+    restart: unless-stopped
+  web:
+    image: nginx:1.27-alpine
+    depends_on: [api]
+    ports: ["8080:80"]
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+      - ./infra/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+volumes:
+  qc_pg:
