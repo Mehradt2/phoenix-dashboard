@@ -29,15 +29,22 @@ def vitamin_d(t):
     low=t.lower()
     mentioned=bool(re.search(r"ویتامین\s*[- ]?d|ویتامین\s*دی",low))
     if not mentioned:
-        return {"mentioned":False,"agreement":False,"registration":"not_mentioned","evidence":[],"external_verification":"not_available"}
+        return {"mentioned":False,"test_agreement":"none","test_agreement_level":"none","registration":"not_mentioned","evidence":[],"external_verification":"not_available"}
     rs=roles(t)
     doctor=" ".join(v for k,v in rs if k in ("پزشک","دکتر"))
     user=" ".join(v for k,v in rs if k in ("کاربر","بیمار","همراه"))
-    d_ag=bool(contains(doctor,AGREE) or contains(doctor,REGISTERED) or contains(doctor,COMMIT) or re.search(r"انجام.*ویتامین|ویتامین.*انجام",doctor))
-    u_ag=bool(contains(user,AGREE) or re.search(r"انجام.*ویتامین|ویتامین.*انجام",user))
+    doctor_accept=bool(contains(doctor,AGREE) or contains(doctor,REGISTERED) or contains(doctor,COMMIT) or re.search(r"انجام.*ویتامین|ویتامین.*انجام",doctor))
+    user_accept=bool(contains(user,AGREE) or re.search(r"انجام.*ویتامین|ویتامین.*انجام",user))
+    explicit_doctor_test=bool(re.search(r"انجام.*ویتامین|ویتامین.*انجام|آزمایش.*ویتامین|ویتامین.*آزمایش",doctor))
+    explicit_user_test=bool(re.search(r"انجام.*ویتامین|ویتامین.*انجام|آزمایش.*ویتامین|ویتامین.*آزمایش",user))
+    if explicit_doctor_test and explicit_user_test:
+        agreement,level="yes","explicit"
+    elif doctor_accept and user_accept:
+        agreement,level="yes","implicit"
+    else:
+        agreement,level="no","none"
     reg="registered" if contains(doctor,REGISTERED) else ("committed_to_register" if contains(doctor,COMMIT) else "discussed_only")
-    return {"mentioned":True,"agreement":bool(d_ag and u_ag),"registration":reg,"external_verification":"not_available","evidence":evidence(t,["ویتامین د","ویتامین D"]+list(REGISTERED)+list(COMMIT))}
-
+    return {"mentioned":True,"test_agreement":agreement,"test_agreement_level":level,"registration":reg,"external_verification":"not_available","evidence":evidence(t,["ویتامین د","ویتامین D"]+list(REGISTERED)+list(COMMIT))}
 def doctor_score(t):
     if any(x.lower() in t.lower() for x in NOANSWER):
         return {"score":None,"status":"no_answer","dimensions":{}}
