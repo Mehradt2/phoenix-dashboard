@@ -33,7 +33,7 @@ def vitamin_d(t):
     rs=roles(t)
     doctor=" ".join(v for k,v in rs if k in ("پزشک","دکتر"))
     user=" ".join(v for k,v in rs if k in ("کاربر","بیمار","همراه"))
-    d_ag=bool(contains(doctor,AGREE) or re.search(r"انجام.*ویتامین|ویتامین.*انجام",doctor))
+    d_ag=bool(contains(doctor,AGREE) or contains(doctor,REGISTERED) or contains(doctor,COMMIT) or re.search(r"انجام.*ویتامین|ویتامین.*انجام",doctor))
     u_ag=bool(contains(user,AGREE) or re.search(r"انجام.*ویتامین|ویتامین.*انجام",user))
     reg="registered" if contains(doctor,REGISTERED) else ("committed_to_register" if contains(doctor,COMMIT) else "discussed_only")
     return {"mentioned":True,"agreement":bool(d_ag and u_ag),"registration":reg,"external_verification":"not_available","evidence":evidence(t,["ویتامین د","ویتامین D"]+list(REGISTERED)+list(COMMIT))}
