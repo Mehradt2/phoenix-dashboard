@@ -56,3 +56,11 @@ def report_csv(entity_type:str,date_from:str|None=Query(None),date_to:str|None=Q
 @app.get("/",include_in_schema=False)
 def web_home():
     return FileResponse("/app/web/index.html")
+
+@app.get("/app.css",include_in_schema=False)
+def web_css():
+    return FileResponse("/app/web/app.css")
+
+@app.get("/app.js",include_in_schema=False)
+def web_js():
+    return FileResponse("/app/web/app.js")
