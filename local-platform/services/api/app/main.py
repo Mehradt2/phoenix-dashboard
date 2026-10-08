@@ -5,6 +5,7 @@ from datetime import datetime,timezone
 from .storage import init_db,save_case,get_profile,get_history,list_cases
 from .engine import analyze_case
 from .ogason import OgasonClient
+from .ai import LocalAI
 
 app=FastAPI(title="KulePoshti QC Operations OS",version="2.5.0")
 init_db()
@@ -20,6 +21,9 @@ class AnalyzeRequest(BaseModel):
 @app.get("/api/health")
 def health():
     return {"status":"ok","service":"kuleposhti-qc","version":"2.5.0","signature":"mehradtorabi1"}
+
+@app.get("/api/ai/status")
+def ai_status(): return LocalAI().status()
 
 @app.get("/api/rules")
 def rules():
